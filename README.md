@@ -6,13 +6,13 @@ Este repositório organiza os exercícios, exemplos e testes desenvolvidos duran
 
 ## Estrutura das pastas
 
-- `Experts/CursoPedroQuina/Aulas/`: Expert Advisors desenvolvidos nas aulas.
-- `Experts/CursoPedroQuina/Testes/`: testes e experimentos com Expert Advisors.
-- `Scripts/CursoPedroQuina/Aulas/`: scripts desenvolvidos nas aulas.
-- `Scripts/CursoPedroQuina/Testes/`: testes e experimentos com scripts.
-- `Indicators/CursoPedroQuina/Aulas/`: indicadores desenvolvidos nas aulas.
-- `Indicators/CursoPedroQuina/Testes/`: testes e experimentos com indicadores.
-- `Include/CursoPedroQuina/`: arquivos reutilizáveis de cabeçalho (`.mqh`) do curso.
+- `Experts/PQ/Aulas/`: Expert Advisors desenvolvidos nas aulas.
+- `Experts/PQ/Testes/`: testes e experimentos com Expert Advisors.
+- `Scripts/PQ/Aulas/`: scripts desenvolvidos nas aulas.
+- `Scripts/PQ/Testes/`: testes e experimentos com scripts.
+- `Indicators/PQ/Aulas/`: indicadores desenvolvidos nas aulas.
+- `Indicators/PQ/Testes/`: testes e experimentos com indicadores.
+- `Include/PQ/`: arquivos reutilizáveis de cabeçalho (`.mqh`) do curso.
 
 ## Padrão de nomes
 

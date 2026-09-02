@@ -7,17 +7,17 @@
 
 # Somente os materiais do curso podem ser versionados.
 !/Experts/
-!/Experts/CursoPedroQuina/
-!/Experts/CursoPedroQuina/**
+!/Experts/PQ/
+!/Experts/PQ/**
 !/Scripts/
-!/Scripts/CursoPedroQuina/
-!/Scripts/CursoPedroQuina/**
+!/Scripts/PQ/
+!/Scripts/PQ/**
 !/Indicators/
-!/Indicators/CursoPedroQuina/
-!/Indicators/CursoPedroQuina/**
+!/Indicators/PQ/
+!/Indicators/PQ/**
 !/Include/
-!/Include/CursoPedroQuina/
-!/Include/CursoPedroQuina/**
+!/Include/PQ/
+!/Include/PQ/**
 
 # Nunca versionar artefatos compilados ou temporarios, inclusive dentro do curso.
 **/*.ex5
