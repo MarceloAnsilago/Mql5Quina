@@ -6,13 +6,13 @@ Este repositório organiza os exercícios, exemplos e testes desenvolvidos duran
 
 ## Estrutura das pastas
 
-- `Experts/PQ/Aulas/`: Expert Advisors desenvolvidos nas aulas.
-- `Experts/PQ/Testes/`: testes e experimentos com Expert Advisors.
-- `Scripts/PQ/Aulas/`: scripts desenvolvidos nas aulas.
-- `Scripts/PQ/Testes/`: testes e experimentos com scripts.
-- `Indicators/PQ/Aulas/`: indicadores desenvolvidos nas aulas.
-- `Indicators/PQ/Testes/`: testes e experimentos com indicadores.
-- `Include/PQ/`: arquivos reutilizáveis de cabeçalho (`.mqh`) do curso.
+- `Experts/CursoPQ/Aulas/`: Expert Advisors desenvolvidos nas aulas.
+- `Experts/CursoPQ/Testes/`: testes e experimentos com Expert Advisors.
+- `Scripts/CursoPQ/Aulas/`: scripts desenvolvidos nas aulas.
+- `Scripts/CursoPQ/Testes/`: testes e experimentos com scripts.
+- `Indicators/CursoPQ/Aulas/`: indicadores desenvolvidos nas aulas.
+- `Indicators/CursoPQ/Testes/`: testes e experimentos com indicadores.
+- `Include/CursoPQ/`: arquivos reutilizáveis de cabeçalho (`.mqh`) do curso.
 
 ## Padrão de nomes
 

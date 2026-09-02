@@ -7,17 +7,17 @@
 
 # Somente os materiais do curso podem ser versionados.
 !/Experts/
-!/Experts/PQ/
-!/Experts/PQ/**
+!/Experts/CursoPQ/
+!/Experts/CursoPQ/**
 !/Scripts/
-!/Scripts/PQ/
-!/Scripts/PQ/**
+!/Scripts/CursoPQ/
+!/Scripts/CursoPQ/**
 !/Indicators/
-!/Indicators/PQ/
-!/Indicators/PQ/**
+!/Indicators/CursoPQ/
+!/Indicators/CursoPQ/**
 !/Include/
-!/Include/PQ/
-!/Include/PQ/**
+!/Include/CursoPQ/
+!/Include/CursoPQ/**
 
 # Nunca versionar artefatos compilados ou temporarios, inclusive dentro do curso.
 **/*.ex5
