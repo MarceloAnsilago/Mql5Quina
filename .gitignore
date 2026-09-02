@@ -1,0 +1,33 @@
+# Lista de permissao: ignore tudo por padrao.
+*
+
+# Arquivos de controle do repositorio.
+!/.gitignore
+!/README.md
+
+# Somente os materiais do curso podem ser versionados.
+!/Experts/
+!/Experts/CursoPedroQuina/
+!/Experts/CursoPedroQuina/**
+!/Scripts/
+!/Scripts/CursoPedroQuina/
+!/Scripts/CursoPedroQuina/**
+!/Indicators/
+!/Indicators/CursoPedroQuina/
+!/Indicators/CursoPedroQuina/**
+!/Include/
+!/Include/CursoPedroQuina/
+!/Include/CursoPedroQuina/**
+
+# Nunca versionar artefatos compilados ou temporarios, inclusive dentro do curso.
+**/*.ex5
+**/*.log
+**/*.tmp
+**/*.temp
+**/*.bak
+**/*.cache
+**/~*
+**/*.swp
+**/*.swo
+**/.DS_Store
+**/Thumbs.db
