@@ -16,3 +16,13 @@ void OnStart()
 
   }
 //+------------------------------------------------------------------+
+
+//ignorar qualquer informaçao que esteja a frente de //
+
+/* inicio de comentario
+
+linha1
+linha2
+linha3
+
+*/

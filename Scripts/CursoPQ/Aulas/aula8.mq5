@@ -31,6 +31,7 @@ void OnStart()
     Print("script finalizado aula 10");
     Print("script finalizado aula 11");
     Print("script finalizado aula 12");
+    Print("script finalizado aula 13");
   }
 //+------------------------------------------------------------------+
 void ImprimeNome()
