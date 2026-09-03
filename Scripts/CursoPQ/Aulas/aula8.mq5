@@ -14,14 +14,20 @@
 // parametros de entrada
 input int INP_VEZES = 10;
 input int INT_PAUSA = 3;
+
+
 //   variavel global
 string nome      ="Maria";
+
+
+
 
 void OnStart()
   {
 //---
     ImprimeNome();//chamada da função
     Print("script finalizado");
+    Print("script finalizado aula 09");
   }
 //+------------------------------------------------------------------+
 void ImprimeNome()
@@ -31,6 +37,6 @@ void ImprimeNome()
       Print(i + 1, " vez, nome: ", nome,
             ", impresso às ", TimeCurrent());
 
-      Sleep(INT_PAUSA * 1000);
+      Sleep(INT_PAUSA * 1000); // cada 100 equivale a um segundo
    }
 }
