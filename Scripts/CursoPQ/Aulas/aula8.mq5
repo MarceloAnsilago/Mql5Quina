@@ -28,6 +28,8 @@ void OnStart()
     ImprimeNome();//chamada da função
     Print("script finalizado");
     Print("script finalizado aula 09");
+    Print("script finalizado aula 10");
+    Print("script finalizado aula 11");
   }
 //+------------------------------------------------------------------+
 void ImprimeNome()
