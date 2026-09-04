@@ -24,6 +24,8 @@ void OnStart()
    Print("ligado:" , ligado);
    Print("salario :", salario);
    Print("hoje é dia", hoje);
+   
+   Print("Nome : ", nome , "idade : " , idade);
   
   }
 //+------------------------------------------------------------------+
