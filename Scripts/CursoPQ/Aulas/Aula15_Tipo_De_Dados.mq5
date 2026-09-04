@@ -19,5 +19,11 @@ void OnStart()
    bool ligado =  true;
    datetime hoje = D'2016-01-04 13:43:23';
    
+   Print("idade : ", idade);
+   Print("nome : ",nome);
+   Print("ligado:" , ligado);
+   Print("salario :", salario);
+   Print("hoje é dia", hoje);
+  
   }
 //+------------------------------------------------------------------+
