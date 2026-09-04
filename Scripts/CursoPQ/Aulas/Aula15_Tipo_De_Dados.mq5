@@ -26,6 +26,6 @@ void OnStart()
    Print("hoje é dia", hoje);
    
    Print("Nome : ", nome , "idade : " , idade);
-  
+   datetime agora = D'01.01.2016 13:43:23';
   }
 //+------------------------------------------------------------------+
