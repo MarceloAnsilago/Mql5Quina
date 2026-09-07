@@ -13,6 +13,10 @@ struct IndicatorConfig
    ENUM_APPLIED_PRICE rsiPrice;
    double rsiLower,rsiUpper;
   };
+struct GuiAppliedConfiguration
+  {
+   IndicatorConfig indicators[2];
+  };
 string GuiMethodName(const int index)
   { string names[]={"SMA","EMA","SMMA","LWMA"}; return index>=0 && index<4 ? names[index] : ""; }
 string GuiPriceName(const int index)
@@ -22,15 +26,21 @@ class CGuiState
 public:
    IndicatorConfig indicators[2];
    IndicatorConfig applied[2];
+   GuiAppliedConfiguration applications[];
    bool has_applied;
-   void Apply()
+   bool Apply()
      {
-      for(int i=0;i<2;i++) applied[i]=indicators[i];
+      int count=ArraySize(applications);
+      if(ArrayResize(applications,count+1,32)!=count+1) return false;
+      for(int i=0;i<2;i++)
+        { applications[count].indicators[i]=indicators[i]; applied[i]=indicators[i]; }
       has_applied=true;
+      return true;
      }
    void Reset()
      {
       has_applied=false;
+      ArrayFree(applications);
       for(int i=0;i<2;i++)
         {
          indicators[i].type=(i==0 ? GUI_INDICATOR_MA : GUI_INDICATOR_RSI);

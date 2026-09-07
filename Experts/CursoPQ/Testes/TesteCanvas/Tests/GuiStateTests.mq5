@@ -42,5 +42,11 @@ void OnStart()
    Check(state.applied[0].maPeriod==55,"Edição não altera última aplicação");
    state.Apply();
    Check(state.applied[0].maPeriod==60,"Reaplicar atualiza a lista");
+   Check(ArraySize(state.applications)==2,"Cada aplicação acrescenta uma coluna");
+   Check(state.applications[0].indicators[0].maPeriod==55 && state.applications[1].indicators[0].maPeriod==60,"Preservar aplicação anterior ao reaplicar");
+   state.Choose(0,GUI_TYPE,1);
+   Check(state.applications[0].indicators[0].type==GUI_INDICATOR_MA && state.applications[1].indicators[0].type==GUI_INDICATOR_MA,"Troca de tipo não altera histórico");
+   state.Reset();
+   Check(!state.has_applied && ArraySize(state.applications)==0,"Reinicialização limpa histórico");
    PrintFormat("[GuiStateTests] %d verificações, %d falhas",checks,failures);
   }

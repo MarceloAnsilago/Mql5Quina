@@ -13,29 +13,60 @@ private:
    int m_open,m_edit;
    int m_active_indicator;
    bool m_summary_dirty;
+   int m_first_application;
+   CGuiButton m_previous,m_next;
+   int SummaryColumns() { return m_layout.summary.w>=880 ? 2 : 1; }
+   void PlaceHistoryNavigation()
+     {
+      GuiRect r=m_layout.summary;
+      m_previous.caption="<"; m_next.caption=">";
+      m_previous.SetBounds(r.x+r.w-140,r.y+8,56,30);
+      m_next.SetBounds(r.x+r.w-76,r.y+8,56,30);
+      int last=(int)MathMax(0,ArraySize(m_state.applications)-SummaryColumns());
+      m_first_application=(int)MathMin(m_first_application,last);
+      m_previous.enabled=(m_first_application>0);
+      m_next.enabled=(m_first_application<last);
+      if(!m_previous.enabled) m_previous.SetHover(false);
+      if(!m_next.enabled) m_next.SetHover(false);
+     }
    void DrawSummary()
      {
       GuiRect r=m_layout.summary;
       m_renderer.Box(r,GUI_CARD,GUI_BORDER);
-      m_renderer.Text(r.x+20,r.y+16,"ÚLTIMA CONFIGURAÇÃO APLICADA",GUI_TEXT,14,true,r.w-40);
+      PlaceHistoryNavigation();
       if(!m_state.has_applied)
         {
+         m_renderer.Text(r.x+20,r.y+16,"CONFIGURAÇÕES APLICADAS",GUI_TEXT,14,true,r.w-180);
          m_renderer.Text(r.x+20,r.y+52,"Clique em APLICAR para listar os indicadores e parâmetros.",GUI_MUTED,13,false,r.w-40);
+         m_previous.Draw(m_renderer); m_next.Draw(m_renderer);
          return;
         }
+      int columns=SummaryColumns();
+      int column_width=(r.w-40-(columns-1)*24)/columns;
+      for(int column=0;column<columns;column++)
+        {
+         int application=m_first_application+column;
+         if(application>=ArraySize(m_state.applications)) break;
+         int x=r.x+20+column*(column_width+24);
+         int title_width=column_width-(column==columns-1 ? 140 : 0);
+         m_renderer.Text(x,r.y+16,"APLICAÇÃO "+IntegerToString(application+1),GUI_TEXT,14,true,title_width);
+         if(column>0)
+           { GuiRect line; line.Set(x-12,r.y+44,1,r.h-60); m_renderer.Fill(line,GUI_BORDER); }
       for(int i=0;i<2;i++)
         {
-         IndicatorConfig c=m_state.applied[i];
+         IndicatorConfig c=m_state.applications[application].indicators[i];
          bool ma=(c.type==GUI_INDICATOR_MA);
          int y=r.y+46+i*62;
-         m_renderer.Text(r.x+20,y,"Indicador "+IntegerToString(i+1)+" · "+(ma ? "Média Móvel" : "RSI"),GUI_ACCENT,13,true,r.w-40);
+         m_renderer.Text(x,y,"Indicador "+IntegerToString(i+1)+" · "+(ma ? "Média Móvel" : "RSI"),GUI_ACCENT,13,true,column_width);
          string first="Período: "+IntegerToString(ma ? c.maPeriod : c.rsiPeriod);
          first+="   |   Preço: "+GuiPriceName((int)(ma ? c.maPrice : c.rsiPrice)-1);
          string second=ma ? "Método: "+GuiMethodName((int)c.maMethod)+"   |   Shift: "+IntegerToString(c.maShift)
                           : "Nível inferior: "+DoubleToString(c.rsiLower,2)+"   |   Nível superior: "+DoubleToString(c.rsiUpper,2);
-         m_renderer.Text(r.x+20,y+19,first,GUI_TEXT,13,false,r.w-40);
-         m_renderer.Text(r.x+20,y+37,second,GUI_MUTED,13,false,r.w-40);
+         m_renderer.Text(x,y+19,first,GUI_TEXT,13,false,column_width);
+         m_renderer.Text(x,y+37,second,GUI_MUTED,13,false,column_width);
         }
+        }
+      m_previous.Draw(m_renderer); m_next.Draw(m_renderer);
      }
    bool FieldVisible(const int index)
      { return index%5==0 || index/5==m_active_indicator; }
@@ -92,6 +123,7 @@ private:
      }
    void PlaceToggle()
      {
+      PlaceHistoryNavigation();
       m_toggle.caption="RECOLHER";
       m_toggle.SetBounds((int)MathMax(0,m_layout.width-172),m_layout.too_small ? 110 : 26,148,40);
      }
@@ -174,6 +206,11 @@ private:
          bool same=m_fields[m_open].ContainsPoint(x,y);
          CloseSelect(); if(same) return;
         }
+      if(m_previous.ContainsPoint(x,y) || m_next.ContainsPoint(x,y))
+        {
+         m_first_application+=m_previous.ContainsPoint(x,y) ? -1 : 1;
+         PlaceHistoryNavigation(); m_summary_dirty=true; m_dirty=true; return;
+        }
       int hit=-1;
       for(int i=0;i<10;i++) if(FieldVisible(i) && m_fields[i].ContainsPoint(x,y)) { hit=i; break; }
       if(hit==m_edit && m_edit>=0) return;
@@ -189,8 +226,10 @@ private:
         }
       else if(m_apply.ContainsPoint(x,y))
         {
-         m_state.Apply(); m_summary_dirty=true;
-         m_state.PrintConfiguration(); Status("Lista e log atualizados."); Log("Configuração aplicada");
+         if(!m_state.Apply()) { Status("Não foi possível guardar a aplicação.",true); return; }
+         m_first_application=(int)MathMax(0,ArraySize(m_state.applications)-SummaryColumns());
+         m_summary_dirty=true;
+         m_state.PrintConfiguration(); Status("Nova coluna adicionada ao histórico."); Log("Configuração aplicada");
         }
      }
    void Mouse(const int x,const int y,const string flags)
@@ -201,6 +240,9 @@ private:
       if(m_collapsed) return;
       if(m_layout.too_small) return;
       bool overlay=(m_open>=0 && m_fields[m_open].select.popup.Contains(x,y));
+      bool previous_hover=m_previous.SetHover(!overlay && m_previous.ContainsPoint(x,y));
+      bool next_hover=m_next.SetHover(!overlay && m_next.ContainsPoint(x,y));
+      if(previous_hover || next_hover) { m_summary_dirty=true; m_dirty=true; }
       for(int i=0;i<10;i++) if(m_fields[i].Hover(FieldVisible(i) && !overlay && m_fields[i].ContainsPoint(x,y))) m_dirty=true;
       if(m_apply.SetHover(!overlay && m_apply.ContainsPoint(x,y))) m_dirty=true;
       bool down=((StringToInteger(flags)&1)!=0 && m_apply.hover && m_open<0);
@@ -240,7 +282,7 @@ private:
       m_layout.Calculate(w,h); Reflow(); Log(StringFormat("Canvas redimensionado: %dx%d",w,h));
      }
 public:
-   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; m_active_indicator=0; m_summary_dirty=false; }
+   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; m_active_indicator=0; m_summary_dirty=false; m_first_application=0; }
    bool Create(const long chart,const bool debug)
      {
       m_chart=chart; m_debug=debug; m_state.Reset(); m_name="CanvasGUI_"+IntegerToString(chart)+"_"+IntegerToString((long)GetTickCount64());

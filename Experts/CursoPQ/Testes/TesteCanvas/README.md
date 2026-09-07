@@ -17,7 +17,7 @@ Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da
 
 Recolher preserva as configurações e até uma edição ainda não confirmada; dropdowns são fechados. O mesmo Canvas é reduzido a 176 × 40 pixels para desenhar o botão de retorno, mantendo apenas um objeto gráfico e liberando o restante do gráfico para interação. Ao reabrir, as dimensões atuais são lidas novamente.
 
-O script `Tests/GuiStateTests.mq5` contém 34 verificações do estado: valores iniciais, independência, preservação MA/RSI, validação e mapeamentos. Para executar, copie o script para `MQL5/Scripts`, ajustando seu include para o caminho de `GuiState.mqh`, compile e arraste para um gráfico. Ele não cria objetos nem opera. Resultado esperado: `34 verificações, 0 falhas`. A compilação do script não equivale à sua execução.
+O script `Tests/GuiStateTests.mq5` contém 38 verificações do estado: valores iniciais, independência, preservação MA/RSI, validação e mapeamentos. Para executar, copie o script para `MQL5/Scripts`, ajustando seu include para o caminho de `GuiState.mqh`, compile e arraste para um gráfico. Ele não cria objetos nem opera. Resultado esperado: `38 verificações, 0 falhas`. A compilação do script não equivale à sua execução.
 
 ## Arquivos e responsabilidades
 
@@ -59,9 +59,12 @@ O teclado numérico foi implementado em Canvas porque o escopo não exige ediç�
 - Ocupa a janela principal do gráfico, não sub-janelas de indicadores existentes. Destina-se preferencialmente a um gráfico limpo.
 - Compilação verificada no MetaEditor instalado. O roteiro de interação visual e o script de estado devem ser executados no terminal; não foram executados automaticamente nesta entrega.
 
-## Lista aplicada
+## Histórico de aplicações
 
-Abaixo dos cards e do botão APLICAR, a lista mostra a última configuração aplicada dos dois indicadores, incluindo todos os parâmetros do tipo escolhido. Antes da primeira aplicação, aparece uma orientação. Cada aplicação substitui a lista; não acumula histórico. Alterar os campos não muda a lista até aplicar novamente. Recolher/reabrir e redimensionar preservam essa cópia em memória. Um valor inválido impede a aplicação e mantém a lista anterior.
+Cada clique em APLICAR acrescenta uma coluna numerada (APLICAÇÃO 1, APLICAÇÃO 2, etc.), com uma cópia dos dois indicadores e respectivos parâmetros. As colunas anteriores não são sobrescritas, mesmo quando o tipo do indicador muda. Antes da primeira aplicação, aparece uma orientação.
 
-Para validar, aplique os valores iniciais, altere um período e confira que a lista só muda ao aplicar novamente. Verifique também a troca MA/RSI e o botão recolher. O script de estado inclui verificações da cópia aplicada, independência em relação à edição e atualização ao reaplicar.
+A área mostra duas colunas lado a lado quando tem pelo menos 880 pixels de largura; abaixo disso, mostra uma por vez. As setas < e > navegam pelo histórico sem alterar os campos em edição. Uma nova aplicação traz as colunas mais recentes para a tela. As setas ficam desabilitadas nos limites.
 
+Editar os campos, recolher/reabrir ou redimensionar não altera as aplicações já registradas. Valores inválidos impedem a aplicação. O histórico permanece apenas em memória até reinicializar/remover o EA; seu consumo de memória cresce com o número de aplicações. Os controles continuam desenhados no mesmo Canvas, sem objetos MT5 adicionais.
+
+Para validar: aplique os valores iniciais, mude um período e aplique novamente. Confira as duas colunas e seus valores diferentes. Faça uma terceira aplicação, volte à primeira pelas setas e teste recolher/reabrir e redimensionar. O script de estado verifica também a preservação do histórico e sua limpeza ao reinicializar. Compilação verificada; execução do script e validação visual continuam pendentes no terminal.
