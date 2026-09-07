@@ -35,5 +35,12 @@ void OnStart()
      }
    for(int m=0;m<4;m++)
      { state.Choose(0,GUI_METHOD,m); Check(state.Choice(0,GUI_METHOD)==m,"Mapeamento método "+IntegerToString(m)); }
+   Check(!state.has_applied,"Lista inicialmente vazia");
+   state.Apply();
+   Check(state.has_applied && state.applied[0].maPeriod==55 && state.applied[1].rsiPeriod==14,"Aplicar captura ambos os indicadores");
+   state.Commit(0,GUI_PERIOD,"60",error);
+   Check(state.applied[0].maPeriod==55,"Edição não altera última aplicação");
+   state.Apply();
+   Check(state.applied[0].maPeriod==60,"Reaplicar atualiza a lista");
    PrintFormat("[GuiStateTests] %d verificações, %d falhas",checks,failures);
   }

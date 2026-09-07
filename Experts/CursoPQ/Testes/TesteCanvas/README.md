@@ -1,4 +1,4 @@
-# TesteCanvas
+﻿# TesteCanvas
 
 Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da biblioteca padrão do MT5. Não envia ordens, não cria handles de indicadores e não implementa estratégia.
 
@@ -17,7 +17,7 @@ Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da
 
 Recolher preserva as configurações e até uma edição ainda não confirmada; dropdowns são fechados. O mesmo Canvas é reduzido a 176 × 40 pixels para desenhar o botão de retorno, mantendo apenas um objeto gráfico e liberando o restante do gráfico para interação. Ao reabrir, as dimensões atuais são lidas novamente.
 
-O script `Tests/GuiStateTests.mq5` contém 30 verificações do estado: valores iniciais, independência, preservação MA/RSI, validação e mapeamentos. Para executar, copie o script para `MQL5/Scripts`, ajustando seu include para o caminho de `GuiState.mqh`, compile e arraste para um gráfico. Ele não cria objetos nem opera. Resultado esperado: `30 verificações, 0 falhas`. A compilação do script não equivale à sua execução.
+O script `Tests/GuiStateTests.mq5` contém 34 verificações do estado: valores iniciais, independência, preservação MA/RSI, validação e mapeamentos. Para executar, copie o script para `MQL5/Scripts`, ajustando seu include para o caminho de `GuiState.mqh`, compile e arraste para um gráfico. Ele não cria objetos nem opera. Resultado esperado: `34 verificações, 0 falhas`. A compilação do script não equivale à sua execução.
 
 ## Arquivos e responsabilidades
 
@@ -50,7 +50,7 @@ O teclado numérico foi implementado em Canvas porque o escopo não exige ediç�
 
 ## Limitações conhecidas
 
-- Área mínima: 600 × 610 pixels com cards empilhados, ou 1000 × 490 com cards lado a lado. Abaixo disso aparece uma instrução para ampliar. Não há rolagem.
+- Área mínima: 600 × 770 pixels com cards empilhados, ou 1000 × 630 com cards lado a lado. Abaixo disso aparece uma instrução para ampliar. Não há rolagem.
 - Medidas em pixels; escala de DPI não é ajustada automaticamente.
 - Edição numérica limitada a 12 caracteres; períodos 1–100000, shift ±100000 e níveis RSI 0–100 com até duas casas decimais e inferior < superior.
 - Sem clipboard, seleção arbitrária, Ctrl+A ou navegação completa por Tab. Tab confirma a edição. O gráfico deve estar com foco para receber teclado.
@@ -58,3 +58,10 @@ O teclado numérico foi implementado em Canvas porque o escopo não exige ediç�
 - Estado apenas em memória; reinicialização do EA, troca de símbolo/timeframe ou remoção retorna aos valores iniciais.
 - Ocupa a janela principal do gráfico, não sub-janelas de indicadores existentes. Destina-se preferencialmente a um gráfico limpo.
 - Compilação verificada no MetaEditor instalado. O roteiro de interação visual e o script de estado devem ser executados no terminal; não foram executados automaticamente nesta entrega.
+
+## Lista aplicada
+
+Abaixo dos cards e do botão APLICAR, a lista mostra a última configuração aplicada dos dois indicadores, incluindo todos os parâmetros do tipo escolhido. Antes da primeira aplicação, aparece uma orientação. Cada aplicação substitui a lista; não acumula histórico. Alterar os campos não muda a lista até aplicar novamente. Recolher/reabrir e redimensionar preservam essa cópia em memória. Um valor inválido impede a aplicação e mantém a lista anterior.
+
+Para validar, aplique os valores iniciais, altere um período e confira que a lista só muda ao aplicar novamente. Verifique também a troca MA/RSI e o botão recolher. O script de estado inclui verificações da cópia aplicada, independência em relação à edição e atualização ao reaplicar.
+

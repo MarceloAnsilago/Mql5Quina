@@ -21,8 +21,16 @@ class CGuiState
   {
 public:
    IndicatorConfig indicators[2];
+   IndicatorConfig applied[2];
+   bool has_applied;
+   void Apply()
+     {
+      for(int i=0;i<2;i++) applied[i]=indicators[i];
+      has_applied=true;
+     }
    void Reset()
      {
+      has_applied=false;
       for(int i=0;i<2;i++)
         {
          indicators[i].type=(i==0 ? GUI_INDICATOR_MA : GUI_INDICATOR_RSI);

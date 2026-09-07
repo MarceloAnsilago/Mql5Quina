@@ -12,6 +12,31 @@ private:
    long m_old_show,m_old_mouse,m_old_scroll,m_old_keyboard;
    int m_open,m_edit;
    int m_active_indicator;
+   bool m_summary_dirty;
+   void DrawSummary()
+     {
+      GuiRect r=m_layout.summary;
+      m_renderer.Box(r,GUI_CARD,GUI_BORDER);
+      m_renderer.Text(r.x+20,r.y+16,"ÚLTIMA CONFIGURAÇÃO APLICADA",GUI_TEXT,14,true,r.w-40);
+      if(!m_state.has_applied)
+        {
+         m_renderer.Text(r.x+20,r.y+52,"Clique em APLICAR para listar os indicadores e parâmetros.",GUI_MUTED,13,false,r.w-40);
+         return;
+        }
+      for(int i=0;i<2;i++)
+        {
+         IndicatorConfig c=m_state.applied[i];
+         bool ma=(c.type==GUI_INDICATOR_MA);
+         int y=r.y+46+i*62;
+         m_renderer.Text(r.x+20,y,"Indicador "+IntegerToString(i+1)+" · "+(ma ? "Média Móvel" : "RSI"),GUI_ACCENT,13,true,r.w-40);
+         string first="Período: "+IntegerToString(ma ? c.maPeriod : c.rsiPeriod);
+         first+="   |   Preço: "+GuiPriceName((int)(ma ? c.maPrice : c.rsiPrice)-1);
+         string second=ma ? "Método: "+GuiMethodName((int)c.maMethod)+"   |   Shift: "+IntegerToString(c.maShift)
+                          : "Nível inferior: "+DoubleToString(c.rsiLower,2)+"   |   Nível superior: "+DoubleToString(c.rsiUpper,2);
+         m_renderer.Text(r.x+20,y+19,first,GUI_TEXT,13,false,r.w-40);
+         m_renderer.Text(r.x+20,y+37,second,GUI_MUTED,13,false,r.w-40);
+        }
+     }
    bool FieldVisible(const int index)
      { return index%5==0 || index/5==m_active_indicator; }
    void ActivateIndicator(const int indicator)
@@ -163,7 +188,10 @@ private:
          m_dirty=true;
         }
       else if(m_apply.ContainsPoint(x,y))
-        { m_state.PrintConfiguration(); Status("Configuração registrada no log do EA."); Log("Configuração aplicada"); }
+        {
+         m_state.Apply(); m_summary_dirty=true;
+         m_state.PrintConfiguration(); Status("Lista e log atualizados."); Log("Configuração aplicada");
+        }
      }
    void Mouse(const int x,const int y,const string flags)
      {
@@ -212,7 +240,7 @@ private:
       m_layout.Calculate(w,h); Reflow(); Log(StringFormat("Canvas redimensionado: %dx%d",w,h));
      }
 public:
-   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; m_active_indicator=0; }
+   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; m_active_indicator=0; m_summary_dirty=false; }
    bool Create(const long chart,const bool debug)
      {
       m_chart=chart; m_debug=debug; m_state.Reset(); m_name="CanvasGUI_"+IntegerToString(chart)+"_"+IntegerToString((long)GetTickCount64());
@@ -257,7 +285,7 @@ public:
          if(m_layout.too_small)
            {
             m_renderer.Text(24,32,"Amplie a área do gráfico",GUI_TEXT,22,true);
-            m_renderer.Text(24,72,"Mínimo: 600 x 610 ou 1000 x 490 pixels.",GUI_MUTED,14,false,(int)MathMax(60,m_layout.width-48));
+            m_renderer.Text(24,72,"Mínimo: 600 x 770 ou 1000 x 630 pixels.",GUI_MUTED,14,false,(int)MathMax(60,m_layout.width-48));
            }
          else
            {
@@ -286,6 +314,7 @@ public:
             else for(int j=1;j<5;j++) m_fields[m_active_indicator*5+j].Draw(m_renderer,all);
            }
          if(m_full || m_apply.dirty) m_apply.Draw(m_renderer);
+         if(m_full || m_summary_dirty) DrawSummary();
          if(m_full || m_status_dirty)
            {
             m_renderer.Fill(m_layout.status,GUI_BG);
@@ -296,7 +325,7 @@ public:
         }
       if(m_full || m_toggle.dirty) m_toggle.Draw(m_renderer);
       m_renderer.Present();
-      m_full=false; m_card_dirty[0]=false; m_card_dirty[1]=false; m_status_dirty=false; m_dirty=false;
+      m_full=false; m_card_dirty[0]=false; m_card_dirty[1]=false; m_status_dirty=false; m_summary_dirty=false; m_dirty=false;
      }
    void Event(const int id,const long &lparam,const double &dparam,const string &sparam)
      {
