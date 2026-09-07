@@ -12,6 +12,10 @@ public:
    bool ContainsPoint(const int x,const int y) const { return visible && enabled && bounds.Contains(x,y); }
    bool SetHover(const bool value) { if(hover==value) return false; hover=value; dirty=true; return true; }
    virtual void Draw(CGuiRenderer &r) { dirty=false; }
-   void Frame(CGuiRenderer &r) { r.Box(bounds,!enabled ? GUI_DISABLED : (hover ? GUI_HOVER : GUI_CARD),active ? GUI_ACCENT : GUI_BORDER); }
+   void Frame(CGuiRenderer &r)
+     {
+      uint border=!enabled ? GUI_BORDER_DISABLED : (active ? GUI_BORDER_ACTIVE : (hover ? GUI_BORDER_HOVER : GUI_BORDER));
+      r.Box(bounds,!enabled ? GUI_DISABLED : (hover ? GUI_HOVER : GUI_CARD),border);
+     }
   };
 #endif
