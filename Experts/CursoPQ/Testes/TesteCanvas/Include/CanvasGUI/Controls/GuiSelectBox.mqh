@@ -34,7 +34,7 @@ public:
         {
          Frame(r);
          bool show_icon=indicator_icons && selected>0;
-         if(show_icon) r.Icon(selected==1 ? GUI_ICON_MA : GUI_ICON_RSI,bounds.x+12,bounds.y+(bounds.h-16)/2,selected==1 ? GUI_MA_COLOR : GUI_RSI_COLOR,16);
+         if(show_icon) r.Icon(GUI_ICON_INDICATOR,bounds.x+12,bounds.y+(bounds.h-16)/2,GUI_ACCENT,16);
          int inset=show_icon ? 36 : 12;
          if(selected>=0 && selected<ArraySize(m_options)) r.Text(bounds.x+inset,bounds.y+11,m_options[selected],enabled ? GUI_TEXT : GUI_MUTED,15,false,bounds.w-inset-30);
          r.Chevron(bounds.x+bounds.w-18,bounds.y+bounds.h/2,GUI_MUTED);
@@ -52,7 +52,7 @@ public:
          GuiRect row; row.Set(popup.x+4,popup.y+4+i*row_height,popup.w-8,row_height);
          if(i==hot || i==selected) r.Round(row,GUI_HOVER,3);
          bool show_icon=indicator_icons && i>0;
-         if(show_icon) r.Icon(i==1 ? GUI_ICON_MA : GUI_ICON_RSI,row.x+8,row.y+7,i==1 ? GUI_MA_COLOR : GUI_RSI_COLOR,16);
+         if(show_icon) r.Icon(GUI_ICON_INDICATOR,row.x+8,row.y+7,GUI_ACCENT,16);
          int inset=show_icon ? 32 : 8;
          r.Text(row.x+inset,row.y+6,m_options[i],i==selected ? GUI_ACCENT : GUI_TEXT,14,i==selected,row.w-inset-8);
         }

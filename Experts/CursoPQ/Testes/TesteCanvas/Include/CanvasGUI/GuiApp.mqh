@@ -32,7 +32,7 @@ private:
          int x=r.x+20+i*cw;
          if(i>0) { GuiRect line; line.Set(x-10,r.y+44,1,r.h-58); m_renderer.Fill(line,GUI_BORDER); }
          m_renderer.Text(x,r.y+44,"INDICADOR "+IntegerToString(i+1),GUI_ACCENT,12,true,cw-16);
-         m_renderer.Icon(ma ? GUI_ICON_MA : GUI_ICON_RSI,x,r.y+63,ma ? GUI_MA_COLOR : GUI_RSI_COLOR,16);
+         m_renderer.Icon(GUI_ICON_INDICATOR,x,r.y+63,GUI_ACCENT,16);
          m_renderer.Text(x+22,r.y+63,ma ? "Média Móvel" : "RSI",GUI_TEXT,13,true,cw-38);
          m_renderer.Text(x,r.y+84,"Período: "+IntegerToString(ma ? c.maPeriod : c.rsiPeriod),GUI_TEXT,12,false,cw-16);
          m_renderer.Text(x,r.y+102,"Preço: "+GuiPriceName((int)(ma ? c.maPrice : c.rsiPrice)-1),GUI_MUTED,12,false,cw-16);
@@ -471,8 +471,7 @@ public:
                  }
                else if(m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE)
                  {
-                  bool ma=m_state.indicators[m_active_indicator].type==GUI_INDICATOR_MA;
-                  m_renderer.Icon(ma ? GUI_ICON_MA : GUI_ICON_RSI,c.x+24,c.y+38,ma ? GUI_MA_COLOR : GUI_RSI_COLOR,16);
+                  m_renderer.Icon(GUI_ICON_INDICATOR,c.x+24,c.y+38,GUI_ACCENT,16);
                   m_renderer.Text(c.x+46,c.y+38,m_state.indicators[m_active_indicator].type==GUI_INDICATOR_MA ? "Média Móvel" : "RSI",GUI_ACCENT,14,true,c.w-70);
                  }
               }
