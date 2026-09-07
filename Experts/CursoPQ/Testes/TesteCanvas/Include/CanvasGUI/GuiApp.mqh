@@ -16,6 +16,50 @@ private:
    CGuiState m_state;
    CGuiField m_fields[10];
    CGuiButton m_apply;
+   CGuiButton m_toggle;
+   bool m_collapsed;
+   void ToggleInterface()
+     {
+      // Keep uncommitted text and focus in memory while the chart is visible.
+      bool collapse=!m_collapsed;
+      int w=collapse ? 176 : (int)ChartGetInteger(m_chart,CHART_WIDTH_IN_PIXELS,0);
+      int h=collapse ? 40 : (int)ChartGetInteger(m_chart,CHART_HEIGHT_IN_PIXELS,0);
+      if(w<1 || h<1 || !m_renderer.Resize(w,h))
+        { Print("[GUI] Falha ao alternar interface: ",GetLastError()); return; }
+      CloseSelect();
+      m_collapsed=collapse;
+      ChartSetInteger(m_chart,CHART_SHOW,collapse ? true : false);
+      ChartSetInteger(m_chart,CHART_MOUSE_SCROLL,collapse ? m_old_scroll : false);
+      ChartSetInteger(m_chart,CHART_KEYBOARD_CONTROL,collapse ? m_old_keyboard : false);
+      m_toggle.hover=false; m_toggle.active=false;
+      m_apply.hover=false; m_apply.active=false; m_apply.dirty=true;
+      for(int i=0;i<10;i++) m_fields[i].Hover(false);
+      if(collapse)
+        { m_toggle.caption="EXIBIR INTERFACE"; m_toggle.SetBounds(0,0,176,40); }
+      else
+        {
+         m_layout.Calculate(w,h);
+         // Reposition without rebinding: preserve even the current edit buffer.
+         for(int i=0;i<10;i++)
+           {
+            GuiRect r;
+            if(i%5==0) m_layout.IndicatorBounds(i/5,r);
+            else m_layout.ParameterBounds(i/5,i%5-1,r);
+            m_fields[i].label.SetBounds(r.x,r.y-22,r.w,18);
+            m_fields[i].edit.SetBounds(r.x,r.y,r.w,r.h);
+            m_fields[i].select.SetBounds(r.x,r.y,r.w,r.h);
+           }
+         GuiRect r=m_layout.apply; m_apply.SetBounds(r.x,r.y,r.w,r.h);
+         PlaceToggle();
+        }
+      m_full=true; m_dirty=true;
+      Log(collapse ? "Interface recolhida" : "Interface reexibida");
+     }
+   void PlaceToggle()
+     {
+      m_toggle.caption="RECOLHER";
+      m_toggle.SetBounds((int)MathMax(0,m_layout.width-172),m_layout.too_small ? 110 : 26,148,40);
+     }
    void Log(const string value) { if(m_debug) Print("[GUI] ",value); }
    void Status(const string value,const bool error=false)
      { m_message=value; m_error=error; m_status_dirty=true; m_dirty=true; }
@@ -47,6 +91,7 @@ private:
      {
       BuildCard(0); BuildCard(1);
       GuiRect r=m_layout.apply; m_apply.SetBounds(r.x,r.y,r.w,r.h);
+      PlaceToggle();
       m_full=true; m_dirty=true;
      }
    void CloseSelect()
@@ -82,6 +127,8 @@ private:
      }
    void Click(const int x,const int y)
      {
+      if(m_toggle.ContainsPoint(x,y)) { ToggleInterface(); return; }
+      if(m_collapsed) return;
       if(m_layout.too_small) return;
       if(m_apply.active) { m_apply.active=false; m_apply.dirty=true; m_dirty=true; }
       if(m_open>=0)
@@ -108,6 +155,10 @@ private:
      }
    void Mouse(const int x,const int y,const string flags)
      {
+      if(m_toggle.SetHover(m_toggle.ContainsPoint(x,y))) m_dirty=true;
+      bool toggle_down=((StringToInteger(flags)&1)!=0 && m_toggle.hover);
+      if(toggle_down!=m_toggle.active) { m_toggle.active=toggle_down; m_toggle.dirty=true; m_dirty=true; }
+      if(m_collapsed) return;
       if(m_layout.too_small) return;
       bool overlay=(m_open>=0 && m_fields[m_open].select.popup.Contains(x,y));
       for(int i=0;i<10;i++) if(m_fields[i].Hover(!overlay && m_fields[i].ContainsPoint(x,y))) m_dirty=true;
@@ -122,6 +173,7 @@ private:
      }
    void Key(const int key)
      {
+      if(m_collapsed) return;
       if(m_layout.too_small) return;
       if(m_open>=0)
         {
@@ -137,6 +189,8 @@ private:
      }
    void Resize()
      {
+      // The small launcher does not depend on chart size. Reopen reads it anew.
+      if(m_collapsed) return;
       int w=(int)ChartGetInteger(m_chart,CHART_WIDTH_IN_PIXELS,0);
       int h=(int)ChartGetInteger(m_chart,CHART_HEIGHT_IN_PIXELS,0);
       if(w<1 || h<1 || (w==m_layout.width && h==m_layout.height)) return;
@@ -146,7 +200,7 @@ private:
       m_layout.Calculate(w,h); Reflow(); Log(StringFormat("Canvas redimensionado: %dx%d",w,h));
      }
 public:
-   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; }
+   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; }
    bool Create(const long chart,const bool debug)
      {
       m_chart=chart; m_debug=debug; m_state.Reset(); m_name="CanvasGUI_"+IntegerToString(chart)+"_"+IntegerToString((long)GetTickCount64());
@@ -178,6 +232,12 @@ public:
    void Render()
      {
       if(!m_ready || !m_dirty) return;
+      if(m_collapsed)
+        {
+         if(m_full) m_renderer.Clear();
+         m_toggle.Draw(m_renderer); m_renderer.Present();
+         m_full=false; m_dirty=false; return;
+        }
       m_renderer.RestoreOverlay();
       if(m_full)
         {
@@ -189,7 +249,7 @@ public:
            }
          else
            {
-            m_renderer.Text(m_layout.left,26,"STRATEGY BUILDER",GUI_TEXT,26,true);
+            m_renderer.Text(m_layout.left,26,"STRATEGY BUILDER",GUI_TEXT,26,true,m_toggle.bounds.x-m_layout.left-16);
             m_renderer.Text(m_layout.left,65,"Configure os indicadores da estratégia",GUI_MUTED,15);
            }
         }
@@ -214,6 +274,7 @@ public:
            }
          if(m_open>=0) { m_renderer.SaveOverlay(m_fields[m_open].select.popup); m_fields[m_open].select.DrawOverlay(m_renderer); }
         }
+      if(m_full || m_toggle.dirty) m_toggle.Draw(m_renderer);
       m_renderer.Present();
       m_full=false; m_card_dirty[0]=false; m_card_dirty[1]=false; m_status_dirty=false; m_dirty=false;
      }
