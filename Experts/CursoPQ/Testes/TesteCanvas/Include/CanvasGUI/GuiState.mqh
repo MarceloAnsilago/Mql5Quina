@@ -15,7 +15,7 @@ struct IndicatorConfig
   };
 struct GuiAppliedConfiguration
   {
-   IndicatorConfig indicators[2];
+   IndicatorConfig indicators[4];
   };
 string GuiMethodName(const int index)
   { string names[]={"SMA","EMA","SMMA","LWMA"}; return index>=0 && index<4 ? names[index] : ""; }
@@ -24,15 +24,15 @@ string GuiPriceName(const int index)
 class CGuiState
   {
 public:
-   IndicatorConfig indicators[2];
-   IndicatorConfig applied[2];
+   IndicatorConfig indicators[4];
+   IndicatorConfig applied[4];
    GuiAppliedConfiguration applications[];
    bool has_applied;
    bool Apply()
      {
       int count=ArraySize(applications);
       if(ArrayResize(applications,count+1,32)!=count+1) return false;
-      for(int i=0;i<2;i++)
+      for(int i=0;i<4;i++)
         { applications[count].indicators[i]=indicators[i]; applied[i]=indicators[i]; }
       has_applied=true;
       return true;
@@ -41,7 +41,7 @@ public:
      {
       has_applied=false;
       ArrayFree(applications);
-      for(int i=0;i<2;i++)
+      for(int i=0;i<4;i++)
         {
          indicators[i].type=(i==0 ? GUI_INDICATOR_MA : GUI_INDICATOR_RSI);
          indicators[i].maPeriod=20; indicators[i].maMethod=MODE_EMA;
@@ -110,7 +110,7 @@ public:
    void PrintConfiguration()
      {
       Print("===================================="); Print("CONFIGURAÇÃO"); Print("====================================");
-      for(int i=0;i<2;i++)
+      for(int i=0;i<4;i++)
         {
          IndicatorConfig c=indicators[i];
          PrintFormat("Indicador %d: %s",i+1,c.type==GUI_INDICATOR_MA ? "Média Móvel" : "RSI");

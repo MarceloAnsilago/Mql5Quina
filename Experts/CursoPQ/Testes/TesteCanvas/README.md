@@ -6,18 +6,18 @@ Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da
 
 1. Abra `TesteCanvas.mqproj` no MetaEditor e compile `TesteCanvas.mq5` com F7.
 2. No Navegador do MT5, atualize a lista de Experts e arraste `TesteCanvas` para um gráfico. Não é necessário habilitar negociação algorítmica.
-3. A interface abre no **Passo 1 de 6 — Indicadores**, com cabeçalho UNIVERSAL EA e etapas futuras sinalizadas. Cada indicador tem seu próprio card, com seletor e quatro parâmetros sempre visíveis. Inicialmente: MA / 20 / EMA / Close / 0 e RSI / 14 / Close / 30 / 70.
-4. Alterne MA ↔ RSI em cada card; os valores dos dois indicadores e de cada tipo permanecem independentes em memória. As etapas 2–6 são apenas uma preparação visual, sem navegação nesta versão.
+3. O card **Indicadores** oferece quatro botões numerados com seleção exclusiva. Escolha 1, 2, 3 ou 4 e selecione Média Móvel ou RSI. O card **Parâmetros / Indicador N** mostra o nome e os quatro campos do indicador ativo. O indicador 1 inicia como MA; 2, 3 e 4 como RSI.
+4. Configure períodos diferentes nos quatro indicadores e alterne entre eles. Troque MA ↔ RSI: os valores de cada tipo permanecem independentes por indicador. Uma edição inválida bloqueia a troca até ser corrigida ou cancelada com Escape. As etapas 2–6 continuam apenas visuais.
 5. Clique num campo e digite: o primeiro dígito substitui o valor anterior. Enter, Tab ou clique fora confirmam; Escape cancela. Setas, Home, End, Backspace e Delete permitem edição por posição. Ponto, vírgula e decimal do teclado numérico são aceitos.
 6. Teste período zero, texto vazio, níveis fora de 0–100 e inferior ≥ superior: o campo deve ficar vermelho, sem alterar o estado. Corrija ou use Escape para continuar.
-7. Abra a lista de preço em cada card. Verifique sobreposição, abertura para cima perto da borda, fechamento por clique externo e navegação por setas/Enter/Escape.
+7. Selecione cada indicador e abra sua lista de preço no card de parâmetros. Verifique sobreposição, abertura para cima perto da borda, fechamento por clique externo e navegação por setas/Enter/Escape.
 8. Clique Salvar indicadores e confira os valores no log de Experts da Caixa de Ferramentas. `Print()` de EA é exibido em **Experts**, não necessariamente na aba separada **Diário/Journal**. O botão sempre imprime a configuração; `DebugGUI=false` desativa apenas mensagens de diagnóstico.
 9. Redimensione o gráfico e remova o EA: o Canvas deve acompanhar o tamanho e as propriedades do gráfico alteradas pelo experimento devem ser restauradas na remoção.
 10. Clique **Recolher**, no canto superior direito. O gráfico reaparece e seus controles de rolagem e teclado voltam à configuração original. Clique **EXIBIR INTERFACE**, no canto superior esquerdo, para retornar. Teste também redimensionar o gráfico enquanto a interface está recolhida.
 
 Recolher preserva as configurações e até uma edição ainda não confirmada; dropdowns são fechados. O mesmo Canvas é reduzido a 176 × 40 pixels para desenhar o botão de retorno, mantendo apenas um objeto gráfico e liberando o restante do gráfico para interação. Ao reabrir, as dimensões atuais são lidas novamente.
 
-O script `Tests/GuiStateTests.mq5` contém 38 verificações do estado: valores iniciais, independência, preservação MA/RSI, validação e mapeamentos. Para executar, copie o script para `MQL5/Scripts`, ajustando seu include para o caminho de `GuiState.mqh`, compile e arraste para um gráfico. Ele não cria objetos nem opera. Resultado esperado: `38 verificações, 0 falhas`. A compilação do script não equivale à sua execução.
+O script `Tests/GuiStateTests.mq5` contém verificações do estado: valores iniciais, independência, preservação MA/RSI, validação e mapeamentos. Para executar, copie o script para `MQL5/Scripts`, ajustando seu include para o caminho de `GuiState.mqh`, compile e arraste para um gráfico. Ele não cria objetos nem opera. Resultado esperado: `0 falhas`. A compilação do script não equivale à sua execução.
 
 ## Arquivos e responsabilidades
 
@@ -26,7 +26,7 @@ O script `Tests/GuiStateTests.mq5` contém 38 verificações do estado: valores 
 - `Include/CanvasGUI/GuiApp.mqh`: ciclo de vida, despacho de eventos, bindings e invalidação.
 - `Include/CanvasGUI/GuiTheme.mqh`: cores ARGB e retângulos.
 - `Include/CanvasGUI/GuiRenderer.mqh`: Canvas, primitivas, apresentação e backup da região do dropdown.
-- `Include/CanvasGUI/GuiState.mqh`: configuração definitiva dos dois indicadores, validação e impressão.
+- `Include/CanvasGUI/GuiState.mqh`: configuração definitiva dos quatro indicadores, validação e impressão.
 - `Include/CanvasGUI/GuiLayout.mqh`: medidas e distribuição responsiva.
 - `Include/CanvasGUI/Controls/GuiControl.mqh`: base, bounds, visibilidade, habilitação, hover, active e dirty.
 - `Include/CanvasGUI/Controls/GuiLabel.mqh`: rótulos.
@@ -59,20 +59,14 @@ O teclado numérico foi implementado em Canvas porque o escopo não exige ediç�
 - Ocupa a janela principal do gráfico, não sub-janelas de indicadores existentes. Destina-se preferencialmente a um gráfico limpo.
 - Compilação verificada no MetaEditor instalado. O roteiro de interação visual e o script de estado devem ser executados no terminal; não foram executados automaticamente nesta entrega.
 
-## Histórico de aplicações
+## Resumo e histórico de aplicações
 
-Cada clique em Salvar indicadores acrescenta uma coluna numerada (APLICAÇÃO 1, APLICAÇÃO 2, etc.), com uma cópia dos dois indicadores e respectivos parâmetros. As colunas anteriores não são sobrescritas, mesmo quando o tipo do indicador muda. Antes da primeira aplicação, aparece uma orientação.
+A área inferior tem quatro colunas fixas, uma por indicador, com tipo, período, preço e método/shift ou níveis RSI. Antes de salvar, acompanha os valores confirmados em edição. **Salvar indicadores** registra uma cópia dos quatro indicadores e imprime seus parâmetros no log. Depois de salvar, o resumo exibe a aplicação selecionada, identificada no título; as setas navegam por aplicações anteriores sem alterar a edição. Um novo salvamento mostra a aplicação mais recente.
 
-A área mostra duas colunas lado a lado quando tem pelo menos 880 pixels de largura; abaixo disso, mostra uma por vez. As setas < e > navegam pelo histórico sem alterar os campos em edição. Uma nova aplicação traz as colunas mais recentes para a tela. As setas ficam desabilitadas nos limites.
+O histórico e os parâmetros permanecem em memória, inclusive ao recolher/reabrir. Reinicializar ou remover o EA restaura os padrões. Continua existindo apenas um objeto Canvas.
 
-Editar os campos, recolher/reabrir ou redimensionar não altera as aplicações já registradas. Valores inválidos impedem a aplicação. O histórico permanece apenas em memória até reinicializar/remover o EA; seu consumo de memória cresce com o número de aplicações. Os controles continuam desenhados no mesmo Canvas, sem objetos MT5 adicionais.
+## Validação da configuração de quatro indicadores
 
-Para validar: aplique os valores iniciais, mude um período e aplique novamente. Confira as duas colunas e seus valores diferentes. Faça uma terceira aplicação, volte à primeira pelas setas e teste recolher/reabrir e redimensionar. O script de estado verifica também a preservação do histórico e sua limpeza ao reinicializar. Compilação verificada; execução do script e validação visual continuam pendentes no terminal.
+EA e script de estado compilados no MetaEditor. Os testes incluem independência dos quatro slots, preservação de valores MA/RSI, captura do indicador 4 no histórico e reset. Compilar o script não equivale a executá-lo; sua execução no terminal continua pendente.
 
-## Refatoração visual — assistente de estratégias
-
-A estrutura existente de eventos, edição numérica, validação, estado e histórico foi mantida. O layout distribui os dez controles existentes em dois cards independentes. A paleta usa superfícies claras, bordas neutras e azul para foco e ação principal; os botões de recolher e navegar pelo histórico usam estilo secundário.
-
-**Salvar indicadores** executa a mesma aplicação e impressão de configuração anteriores. Não avança para etapas ainda não implementadas. Os dois indicadores continuam obrigatórios como no estado original; a seleção opcional de apenas um indicador pertence a uma etapa funcional futura.
-
-Validação desta refatoração: compilação no MetaEditor e revisão dos limites geométricos do layout. A interação visual no terminal e a execução do script de estado não foram automatizadas. Ao validar no MT5, confira os dois cards simultaneamente, troca MA/RSI, edição inválida, dropdowns sobre outros campos, histórico e recolher/reabrir com edição pendente.
+Roteiro visual: selecionar 1–4, editar períodos distintos, alternar tipos, tentar trocar de indicador com valor inválido, abrir dropdowns, salvar duas configurações, navegar pelo histórico e recolher/reabrir com edição pendente.

@@ -48,5 +48,21 @@ void OnStart()
    Check(state.applications[0].indicators[0].type==GUI_INDICATOR_MA && state.applications[1].indicators[0].type==GUI_INDICATOR_MA,"Troca de tipo não altera histórico");
    state.Reset();
    Check(!state.has_applied && ArraySize(state.applications)==0,"Reinicialização limpa histórico");
+   for(int slot=0;slot<4;slot++)
+     {
+      state.Choose(slot,GUI_TYPE,0);
+      Check(state.Commit(slot,GUI_PERIOD,IntegerToString(20+slot),error),"Editar MA slot "+IntegerToString(slot+1));
+      state.Choose(slot,GUI_TYPE,1);
+      Check(state.Commit(slot,GUI_PERIOD,IntegerToString(10+slot),error),"Editar RSI slot "+IntegerToString(slot+1));
+      state.Choose(slot,GUI_TYPE,0);
+      Check(state.indicators[slot].maPeriod==20+slot && state.indicators[slot].rsiPeriod==10+slot,"Preservar tipos slot "+IntegerToString(slot+1));
+     }
+   Check(state.Apply(),"Salvar quatro slots");
+   state.Commit(3,GUI_PERIOD,"99",error);
+   Check(state.indicators[0].maPeriod==20 && state.indicators[2].maPeriod==22,"Slot 4 independente dos demais");
+   Check(state.applications[0].indicators[3].maPeriod==23,"Snapshot do slot 4 imutável");
+   Check(state.Apply() && state.applications[1].indicators[3].maPeriod==99,"Reaplicar captura slot 4");
+   state.Reset();
+   Check(!state.has_applied && state.indicators[3].rsiPeriod==14,"Reset inclui slot 4");
    PrintFormat("[GuiStateTests] %d verificações, %d falhas",checks,failures);
   }

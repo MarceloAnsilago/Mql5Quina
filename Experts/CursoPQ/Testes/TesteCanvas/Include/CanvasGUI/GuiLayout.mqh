@@ -35,12 +35,17 @@ public:
       // Guard actual content bounds, not an arbitrary desktop resolution.
       too_small=(w<600 || h<summary.y+summary.h+8);
      }
+   void SlotBounds(const int slot,GuiRect &r)
+     {
+      int w=(cards[0].w-72)/4;
+      r.Set(cards[0].x+24+slot*(w+8),cards[0].y+60,w,36);
+     }
    void IndicatorBounds(const int indicator,GuiRect &r)
-     { r.Set(cards[indicator].x+24,cards[indicator].y+(dense ? 56 : 72),cards[indicator].w-48,dense ? 36 : 42); }
+     { r.Set(cards[0].x+24,cards[0].y+136,cards[0].w-48,42); }
    void ParameterBounds(const int card,const int index,GuiRect &r)
      {
-      int w=(cards[card].w-64)/2;
-      r.Set(cards[card].x+24+(index%2)*(w+16),cards[card].y+(dense ? 118 : 148)+(index/2)*(dense ? 62 : 76),w,dense ? 36 : 42);
+      int w=(cards[1].w-64)/2;
+      r.Set(cards[1].x+24+(index%2)*(w+16),cards[1].y+90+(index/2)*76,w,42);
      }
   };
 #endif
