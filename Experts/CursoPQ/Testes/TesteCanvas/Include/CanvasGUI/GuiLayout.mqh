@@ -29,11 +29,12 @@ public:
          cards[1].Set(left,top+card_height+gap,content_width,card_height);
         }
       int bottom=cards[1].y+cards[1].h;
-      apply.Set(left+content_width-204,bottom+(dense ? 12 : 24),204,44);
-      status.Set(left,bottom+(dense ? 12 : 28),content_width-224,48);
-      summary.Set(left,bottom+(dense ? 64 : 92),content_width,dense ? 160 : 180);
-      // Guard actual content bounds, not an arbitrary desktop resolution.
-      too_small=(w<600 || h<summary.y+summary.h+8);
+      summary.Set(left,bottom+(dense ? 8 : 20),content_width,dense ? 160 : 180);
+      int footer=summary.y+summary.h+(dense ? 8 : 24);
+      apply.Set(left+content_width-204,footer,204,44);
+      status.Set(left,footer,content_width-224,48);
+      // Include the footer below the summary in the viewport guard.
+      too_small=(w<600 || h<status.y+status.h+8);
      }
    void SlotBounds(const int slot,GuiRect &r)
      {

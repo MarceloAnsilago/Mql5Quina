@@ -14,29 +14,13 @@ private:
    int m_active_indicator;
    bool m_summary_dirty,m_summary_draft;
    int m_first_application;
-   CGuiButton m_previous,m_next,m_slots[4];
-   int SummaryColumns() { return 1; }
-   void PlaceHistoryNavigation()
-     {
-      GuiRect r=m_layout.summary;
-      m_previous.caption="<"; m_next.caption=">";
-      m_previous.secondary=true; m_next.secondary=true;
-      m_previous.SetBounds(r.x+r.w-140,r.y+8,56,30);
-      m_next.SetBounds(r.x+r.w-76,r.y+8,56,30);
-      int last=(int)MathMax(0,ArraySize(m_state.applications)-SummaryColumns());
-      m_first_application=(int)MathMin(m_first_application,last);
-      m_previous.enabled=(m_first_application>0);
-      m_next.enabled=(m_first_application<last);
-      if(!m_previous.enabled) m_previous.SetHover(false);
-      if(!m_next.enabled) m_next.SetHover(false);
-     }
+   CGuiButton m_slots[4];
    void DrawSummary()
      {
       GuiRect r=m_layout.summary;
       m_renderer.Box(r,GUI_CARD,GUI_BORDER);
-      PlaceHistoryNavigation();
       string heading=m_state.has_applied && !m_summary_draft ? "CONFIGURAÇÃO SALVA / "+IntegerToString(m_first_application+1) : "RESUMO DOS INDICADORES";
-      m_renderer.Text(r.x+20,r.y+14,heading,GUI_TEXT,13,true,r.w-180);
+      m_renderer.Text(r.x+20,r.y+14,heading,GUI_TEXT,13,true,r.w-40);
       int cw=(r.w-40)/4;
       for(int i=0;i<4;i++)
         {
@@ -53,7 +37,6 @@ private:
          m_renderer.Text(x,r.y+120,ma ? "Método: "+GuiMethodName((int)c.maMethod) : "Inferior: "+DoubleToString(c.rsiLower,2),GUI_MUTED,12,false,cw-16);
          m_renderer.Text(x,r.y+138,ma ? "Shift: "+IntegerToString(c.maShift) : "Superior: "+DoubleToString(c.rsiUpper,2),GUI_MUTED,12,false,cw-16);
         }
-      m_previous.Draw(m_renderer); m_next.Draw(m_renderer);
      }
    void DrawWindowFrame()
      {
@@ -164,7 +147,6 @@ private:
      }
    void PlaceToggle()
      {
-      PlaceHistoryNavigation();
       for(int i=0;i<4;i++)
         {
          GuiRect r; m_layout.SlotBounds(i,r);
@@ -263,12 +245,6 @@ private:
             Status("Editando indicador "+IntegerToString(slot+1)+".");
             return;
            }
-      if(m_previous.ContainsPoint(x,y) || m_next.ContainsPoint(x,y))
-        {
-         m_summary_draft=false;
-         m_first_application+=m_previous.ContainsPoint(x,y) ? -1 : 1;
-         PlaceHistoryNavigation(); m_summary_dirty=true; m_dirty=true; return;
-        }
       int hit=-1;
       for(int i=0;i<20;i++) if(FieldVisible(i) && m_fields[i].ContainsPoint(x,y)) { hit=i; break; }
       if(hit==m_edit && m_edit>=0) return;
@@ -285,7 +261,7 @@ private:
       else if(m_apply.ContainsPoint(x,y))
         {
          if(!m_state.Apply()) { Status("Não foi possível guardar a aplicação.",true); return; }
-         m_first_application=(int)MathMax(0,ArraySize(m_state.applications)-SummaryColumns());
+         m_first_application=(int)MathMax(0,ArraySize(m_state.applications)-1);
          m_summary_dirty=true; m_summary_draft=false;
          m_state.PrintConfiguration(); Status("Os quatro indicadores foram salvos no histórico."); Log("Configuração aplicada");
         }
@@ -301,9 +277,6 @@ private:
       for(int slot=0;slot<4;slot++)
          if(m_slots[slot].SetHover(!overlay && m_slots[slot].ContainsPoint(x,y)))
            { m_card_dirty[0]=true; m_dirty=true; }
-      bool previous_hover=m_previous.SetHover(!overlay && m_previous.ContainsPoint(x,y));
-      bool next_hover=m_next.SetHover(!overlay && m_next.ContainsPoint(x,y));
-      if(previous_hover || next_hover) { m_summary_dirty=true; m_dirty=true; }
       for(int i=0;i<20;i++) if(m_fields[i].Hover(FieldVisible(i) && !overlay && m_fields[i].ContainsPoint(x,y))) m_dirty=true;
       if(m_apply.SetHover(!overlay && m_apply.ContainsPoint(x,y))) m_dirty=true;
       bool down=((StringToInteger(flags)&1)!=0 && m_apply.hover && m_open<0);
@@ -388,7 +361,7 @@ public:
          if(m_layout.too_small)
            {
             m_renderer.Text(24,32,"Amplie a área do gráfico",GUI_TEXT,22,true);
-            m_renderer.Text(24,72,"Área atual: "+IntegerToString(m_layout.width)+" x "+IntegerToString(m_layout.height)+". Altura necessária: "+IntegerToString(m_layout.summary.y+m_layout.summary.h+8)+" px.",GUI_MUTED,14,false,(int)MathMax(60,m_layout.width-48));
+            m_renderer.Text(24,72,"Área atual: "+IntegerToString(m_layout.width)+" x "+IntegerToString(m_layout.height)+". Altura necessária: "+IntegerToString(m_layout.status.y+m_layout.status.h+8)+" px.",GUI_MUTED,14,false,(int)MathMax(60,m_layout.width-48));
            }
          else
            {

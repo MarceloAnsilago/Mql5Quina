@@ -61,7 +61,7 @@ O teclado numérico foi implementado em Canvas porque o escopo não exige ediç�
 
 ## Resumo e histórico de aplicações
 
-A área inferior tem quatro colunas fixas, uma por indicador, com tipo, período, preço e método/shift ou níveis RSI. Ao editar, acompanha os valores confirmados, inclusive a seleção Não usar. **Salvar indicadores** registra uma cópia dos quatro indicadores e imprime seus parâmetros no log. Depois de salvar, o resumo exibe a aplicação selecionada, identificada no título; uma nova edição volta ao resumo atual, sem modificar o histórico; as setas navegam por aplicações anteriores sem alterar a edição. Um novo salvamento mostra a aplicação mais recente.
+A área inferior tem quatro colunas fixas, uma por indicador, com tipo, período, preço e método/shift ou níveis RSI. Ao editar, acompanha os valores confirmados, inclusive a seleção Não usar. **Salvar indicadores** registra uma cópia dos quatro indicadores e imprime seus parâmetros no log. Depois de salvar, o resumo exibe a aplicação selecionada, identificada no título; uma nova edição volta ao resumo atual, sem modificar o histórico; os botões de navegação foram removidos. Um novo salvamento mostra a aplicação mais recente.
 
 O histórico e os parâmetros permanecem em memória, inclusive ao recolher/reabrir. Reinicializar ou remover o EA restaura os padrões. Continua existindo apenas um objeto Canvas.
 
@@ -69,4 +69,6 @@ O histórico e os parâmetros permanecem em memória, inclusive ao recolher/reab
 
 EA e script de estado compilados no MetaEditor. Os testes incluem independência dos quatro slots, preservação de valores MA/RSI, captura do indicador 4 no histórico e reset. Compilar o script não equivale a executá-lo; sua execução no terminal continua pendente.
 
-Roteiro visual: selecionar 1–4, editar períodos distintos, alternar tipos, tentar trocar de indicador com valor inválido, abrir dropdowns, salvar duas configurações, navegar pelo histórico e recolher/reabrir com edição pendente.
+Roteiro visual: selecionar 1–4, editar períodos distintos, alternar tipos, tentar trocar de indicador com valor inválido, abrir dropdowns, salvar duas configurações, conferir o resumo salvo e recolher/reabrir com edição pendente.
+
+O botão **Salvar indicadores** fica abaixo do resumo, alinhado à direita. As mensagens ficam à esquerda na mesma área. O histórico continua armazenado em memória; a interface mostra a última aplicação ou a edição atual, sem setas de navegação.
