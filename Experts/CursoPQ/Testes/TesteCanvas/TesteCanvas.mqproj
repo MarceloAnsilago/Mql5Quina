@@ -1,4 +1,4 @@
-﻿{
+{
   "platform"    :"mt5",
   "program_type":"expert",
   "copyright"   :"Copyright 2025, MetaQuotes Ltd.",
@@ -46,6 +46,11 @@
     },
     {
       "path":"Include\\CanvasGUI\\Controls\\GuiControl.mqh",
+      "compile":false,
+      "relative_to_project":true
+    },
+    {
+      "path":"Include\\CanvasGUI\\GuiIcons.mqh",
       "compile":false,
       "relative_to_project":true
     },

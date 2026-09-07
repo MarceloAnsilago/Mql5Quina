@@ -20,7 +20,8 @@ private:
       GuiRect r=m_layout.summary;
       m_renderer.Box(r,GUI_CARD,GUI_BORDER);
       string heading=m_state.has_applied && !m_summary_draft ? "CONFIGURAÇÃO SALVA / "+IntegerToString(m_first_application+1) : "RESUMO DOS INDICADORES";
-      m_renderer.Text(r.x+20,r.y+14,heading,GUI_TEXT,13,true,r.w-40);
+      m_renderer.Icon(GUI_ICON_REVIEW,r.x+20,r.y+12,GUI_ACCENT,18);
+      m_renderer.Text(r.x+46,r.y+14,heading,GUI_TEXT,13,true,r.w-66);
       int cw=(r.w-40)/4;
       for(int i=0;i<4;i++)
         {
@@ -31,7 +32,8 @@ private:
          int x=r.x+20+i*cw;
          if(i>0) { GuiRect line; line.Set(x-10,r.y+44,1,r.h-58); m_renderer.Fill(line,GUI_BORDER); }
          m_renderer.Text(x,r.y+44,"INDICADOR "+IntegerToString(i+1),GUI_ACCENT,12,true,cw-16);
-         m_renderer.Text(x,r.y+63,ma ? "Média Móvel" : "RSI",GUI_TEXT,13,true,cw-16);
+         m_renderer.Icon(ma ? GUI_ICON_MA : GUI_ICON_RSI,x,r.y+63,ma ? GUI_MA_COLOR : GUI_RSI_COLOR,16);
+         m_renderer.Text(x+22,r.y+63,ma ? "Média Móvel" : "RSI",GUI_TEXT,13,true,cw-38);
          m_renderer.Text(x,r.y+84,"Período: "+IntegerToString(ma ? c.maPeriod : c.rsiPeriod),GUI_TEXT,12,false,cw-16);
          m_renderer.Text(x,r.y+102,"Preço: "+GuiPriceName((int)(ma ? c.maPrice : c.rsiPrice)-1),GUI_MUTED,12,false,cw-16);
          m_renderer.Text(x,r.y+120,ma ? "Método: "+GuiMethodName((int)c.maMethod) : "Inferior: "+DoubleToString(c.rsiLower,2),GUI_MUTED,12,false,cw-16);
@@ -69,7 +71,7 @@ private:
            {
             int y=144+i*(m_layout.dense ? 48 : 58);
             if(i==0) { r.Set(12,y-8,m_layout.sidebar-24,44); m_renderer.Round(r,GUI_HOVER); }
-            m_renderer.Text(26,y,IntegerToString(i+1),i==0 ? GUI_ACCENT : GUI_MUTED,14,true);
+            m_renderer.Icon((ENUM_GUI_ICON)i,24,y-2,i==0 ? GUI_ACCENT : GUI_MUTED,20);
             m_renderer.Text(52,y,steps[i],i==0 ? GUI_ACCENT : GUI_MUTED,14,i==0);
            }
          m_renderer.Text(24,m_layout.dense ? 458 : 516,"Etapas 2–6 em breve",GUI_MUTED,11);
@@ -213,6 +215,7 @@ private:
       GuiRect r;
       if(slot==0) m_layout.IndicatorBounds(card,r); else m_layout.ParameterBounds(card,slot-1,r);
       m_fields[card*5+slot].Bind(m_state,card,key,title,r,options);
+      m_fields[card*5+slot].select.indicator_icons=(key==GUI_TYPE);
      }
    void BuildIndicator(const int card)
      {
@@ -453,7 +456,10 @@ public:
                GuiRect c=m_layout.cards[card];
                string title=card==0 ? "INDICADORES" : "PARÂMETROS / INDICADOR "+IntegerToString(m_active_indicator+1);
                if(card==0 || m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE)
-                  m_renderer.Text(c.x+24,c.y+14,title,GUI_TEXT,14,true,c.w-48);
+                  {
+                   m_renderer.Icon(card==0 ? GUI_ICON_INDICATORS : GUI_ICON_PARAMETERS,c.x+24,c.y+12,GUI_ACCENT,20);
+                   m_renderer.Text(c.x+52,c.y+14,title,GUI_TEXT,14,true,c.w-76);
+                  }
                if(card==0)
                  {
                   m_renderer.Text(c.x+24,c.y+38,"Qual indicador deseja configurar?",GUI_MUTED,12,false,c.w-48);
@@ -463,7 +469,12 @@ public:
                      m_slots[slot].Draw(m_renderer);
                     }
                  }
-               else if(m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE) m_renderer.Text(c.x+24,c.y+38,m_state.indicators[m_active_indicator].type==GUI_INDICATOR_MA ? "Média Móvel" : "RSI",GUI_ACCENT,14,true,c.w-48);
+               else if(m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE)
+                 {
+                  bool ma=m_state.indicators[m_active_indicator].type==GUI_INDICATOR_MA;
+                  m_renderer.Icon(ma ? GUI_ICON_MA : GUI_ICON_RSI,c.x+24,c.y+38,ma ? GUI_MA_COLOR : GUI_RSI_COLOR,16);
+                  m_renderer.Text(c.x+46,c.y+38,m_state.indicators[m_active_indicator].type==GUI_INDICATOR_MA ? "Média Móvel" : "RSI",GUI_ACCENT,14,true,c.w-70);
+                 }
               }
             if(card==0) m_fields[m_active_indicator*5].Draw(m_renderer,all);
             else if(m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE) for(int j=1;j<5;j++) m_fields[m_active_indicator*5+j].Draw(m_renderer,all);

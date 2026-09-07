@@ -2,6 +2,7 @@
 #define CANVAS_GUI_RENDERER_MQH
 #include <Canvas/Canvas.mqh>
 #include "GuiTheme.mqh"
+#include "GuiIcons.mqh"
 class CGuiRenderer
   {
 private:
@@ -64,6 +65,8 @@ public:
         }
       m_canvas.TextOut(x,y,value,c);
      }
+   void Icon(const ENUM_GUI_ICON icon,const int x,const int y,const uint ink=GUI_ACCENT,const int size=20)
+     { GuiDrawIcon(m_canvas,icon,x,y,size,ink); }
    void FocusOutline(const GuiRect &r,const uint c)
      { m_canvas.Rectangle(r.x+3,r.y+3,r.x+r.w-4,r.y+r.h-4,c); }
    void Chevron(const int x,const int y,const uint c)

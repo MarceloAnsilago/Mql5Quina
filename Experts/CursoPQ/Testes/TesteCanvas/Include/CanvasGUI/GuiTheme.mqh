@@ -13,6 +13,8 @@
 #define GUI_ACCENT   0xFF2563EB
 #define GUI_HOVER    0xFFEFF5FF
 #define GUI_DISABLED 0xFFF0F2F5
+#define GUI_MA_COLOR 0xFF16A064
+#define GUI_RSI_COLOR 0xFFEA7A21
 #define GUI_ERROR    0xFFBA3248
 struct GuiRect
   {

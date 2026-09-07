@@ -1,5 +1,11 @@
 # TesteCanvas
 
+## Padrão de ícones dos cards
+
+`Include/CanvasGUI/GuiIcons.mqh` centraliza a família de ícones de traço fino em uma grade de 20 × 20. Use `renderer.Icon(GUI_ICON_..., x, y, cor, tamanho)` nos próximos cards, sem fontes de símbolos, imagens externas ou objetos adicionais. Títulos usam 20 pixels; indicadores e opções usam 16 pixels, com espaço reservado antes do texto. Azul identifica a estrutura, verde a Média Móvel e laranja o RSI. O nome permanece ao lado do ícone.
+
+A família inclui Indicadores, Regras, Gestão, Filtros, Revisão, Ativação, Parâmetros, Média Móvel e RSI. A opção Não usar mantém parâmetros e resumo vazios. Compilação verificada; conferência visual dos ícones no terminal ainda pendente.
+
 Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da biblioteca padrão do MT5. Não envia ordens, não cria handles de indicadores e não implementa estratégia.
 
 ## Compilar e testar
