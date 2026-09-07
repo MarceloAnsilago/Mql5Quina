@@ -54,6 +54,16 @@ private:
         }
       m_previous.Draw(m_renderer); m_next.Draw(m_renderer);
      }
+   void DrawWindowFrame()
+     {
+      int w=m_layout.width,h=m_layout.height;
+      if(w<4 || h<4) return;
+      GuiRect edge;
+      edge.Set(0,0,w,4); m_renderer.Fill(edge,GUI_ACCENT);
+      edge.Set(0,4,2,h-4); m_renderer.Fill(edge,GUI_WINDOW_BORDER);
+      edge.Set(w-2,4,2,h-4); m_renderer.Fill(edge,GUI_WINDOW_BORDER);
+      edge.Set(0,h-2,w,2); m_renderer.Fill(edge,GUI_WINDOW_BORDER);
+     }
    // Wizard shell is presentation only. Future steps have no hit targets.
    void DrawShell()
      {
@@ -418,6 +428,7 @@ public:
          if(m_open>=0) { m_renderer.SaveOverlay(m_fields[m_open].select.popup); m_fields[m_open].select.DrawOverlay(m_renderer); }
         }
       if(m_full || m_toggle.dirty) m_toggle.Draw(m_renderer);
+      DrawWindowFrame();
       m_renderer.Present();
       m_full=false; m_card_dirty[0]=false; m_card_dirty[1]=false; m_status_dirty=false; m_summary_dirty=false; m_dirty=false;
      }
