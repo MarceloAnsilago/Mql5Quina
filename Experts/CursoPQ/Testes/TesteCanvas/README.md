@@ -6,11 +6,11 @@ Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da
 
 1. Abra `TesteCanvas.mqproj` no MetaEditor e compile `TesteCanvas.mq5` com F7.
 2. No Navegador do MT5, atualize a lista de Experts e arraste `TesteCanvas` para um gráfico. Não é necessário habilitar negociação algorítmica.
-3. Confirme MA / 20 / EMA / Close / 0 no indicador 1 e RSI / 14 / Close / 30 / 70 no indicador 2.
-4. Abra cada seletor, troque MA ↔ RSI e confirme a mudança dos quatro parâmetros. Os valores anteriores de cada tipo permanecem em memória ao alternar.
+3. O primeiro card contém os seletores **Indicador 1** e **Indicador 2**, um abaixo do outro. O segundo card mostra apenas os parâmetros do indicador ativo, identificado no título. Inicialmente aparece o indicador 1: MA / 20 / EMA / Close / 0.
+4. Clique no seletor Indicador 2 para exibir seus parâmetros: RSI / 14 / Close / 30 / 70. Abrir um seletor já ativa o indicador correspondente, mesmo sem trocar o tipo. Alterne MA ↔ RSI e volte ao Indicador 1; os valores dos dois indicadores e de cada tipo permanecem independentes em memória.
 5. Clique num campo e digite: o primeiro dígito substitui o valor anterior. Enter, Tab ou clique fora confirmam; Escape cancela. Setas, Home, End, Backspace e Delete permitem edição por posição. Ponto, vírgula e decimal do teclado numérico são aceitos.
 6. Teste período zero, texto vazio, níveis fora de 0–100 e inferior ≥ superior: o campo deve ficar vermelho, sem alterar o estado. Corrija ou use Escape para continuar.
-7. Abra listas de preço nos dois cards. Verifique sobreposição, abertura para cima perto da borda, fechamento por clique externo e navegação por setas/Enter/Escape.
+7. Ative cada indicador no primeiro card e abra sua lista de preço no segundo card. Verifique sobreposição, abertura para cima perto da borda, fechamento por clique externo e navegação por setas/Enter/Escape.
 8. Clique APLICAR e confira os valores no log de Experts da Caixa de Ferramentas. `Print()` de EA é exibido em **Experts**, não necessariamente na aba separada **Diário/Journal**. O botão sempre imprime a configuração; `DebugGUI=false` desativa apenas mensagens de diagnóstico.
 9. Redimensione o gráfico e remova o EA: o Canvas deve acompanhar o tamanho e as propriedades do gráfico alteradas pelo experimento devem ser restauradas na remoção.
 10. Clique **RECOLHER**, no canto superior direito. O gráfico reaparece e seus controles de rolagem e teclado voltam à configuração original. Clique **EXIBIR INTERFACE**, no canto superior esquerdo, para retornar. Teste também redimensionar o gráfico enquanto a interface está recolhida.

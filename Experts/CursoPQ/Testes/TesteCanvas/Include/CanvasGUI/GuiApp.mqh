@@ -11,6 +11,16 @@ private:
    bool m_debug,m_ready,m_saved,m_dirty,m_full,m_card_dirty[2],m_status_dirty,m_error;
    long m_old_show,m_old_mouse,m_old_scroll,m_old_keyboard;
    int m_open,m_edit;
+   int m_active_indicator;
+   bool FieldVisible(const int index)
+     { return index%5==0 || index/5==m_active_indicator; }
+   void ActivateIndicator(const int indicator)
+     {
+      if(m_active_indicator==indicator) return;
+      m_active_indicator=indicator;
+      for(int i=0;i<10;i++) m_fields[i].Hover(false);
+      m_card_dirty[0]=true; m_card_dirty[1]=true; m_dirty=true;
+     }
    CGuiRenderer m_renderer;
    CGuiLayout m_layout;
    CGuiState m_state;
@@ -69,9 +79,9 @@ private:
       if(slot==0) m_layout.IndicatorBounds(card,r); else m_layout.ParameterBounds(card,slot-1,r);
       m_fields[card*5+slot].Bind(m_state,card,key,title,r,options);
      }
-   void BuildCard(const int card)
+   void BuildIndicator(const int card)
      {
-      BindField(card,0,GUI_TYPE,"Indicador","Média Móvel|RSI");
+      BindField(card,0,GUI_TYPE,"Indicador "+IntegerToString(card+1),"Média Móvel|RSI");
       BindField(card,1,GUI_PERIOD,"Período");
       if(m_state.indicators[card].type==GUI_INDICATOR_MA)
         {
@@ -85,11 +95,11 @@ private:
          BindField(card,3,GUI_LOWER,"Nível inferior");
          BindField(card,4,GUI_UPPER,"Nível superior");
         }
-      m_card_dirty[card]=true; m_dirty=true;
+      m_card_dirty[0]=true; m_card_dirty[1]=true; m_dirty=true;
      }
    void Reflow()
      {
-      BuildCard(0); BuildCard(1);
+      BuildIndicator(0); BuildIndicator(1);
       GuiRect r=m_layout.apply; m_apply.SetBounds(r.x,r.y,r.w,r.h);
       PlaceToggle();
       m_full=true; m_dirty=true;
@@ -118,9 +128,10 @@ private:
       bool changed=m_fields[i].select.selected!=option;
       m_state.Choose(card,m_fields[i].field,option);
       m_fields[i].select.SetSelected(option); CloseSelect();
+      if(m_fields[i].field==GUI_TYPE) ActivateIndicator(card);
       if(changed && m_fields[i].field==GUI_TYPE)
         {
-         BuildCard(card);
+         BuildIndicator(card);
          Log(StringFormat("Indicator%d alterado para %s",card+1,option==0 ? "Média Móvel" : "RSI"));
         }
       if(changed) Status("Configuração alterada. Clique em APLICAR.");
@@ -139,11 +150,12 @@ private:
          CloseSelect(); if(same) return;
         }
       int hit=-1;
-      for(int i=0;i<10;i++) if(m_fields[i].ContainsPoint(x,y)) { hit=i; break; }
+      for(int i=0;i<10;i++) if(FieldVisible(i) && m_fields[i].ContainsPoint(x,y)) { hit=i; break; }
       if(hit==m_edit && m_edit>=0) return;
       if(!FinishEdit(true)) return;
       if(hit>=0)
         {
+         if(m_fields[hit].field==GUI_TYPE) ActivateIndicator(m_fields[hit].card);
          if(m_fields[hit].is_select)
            { m_open=hit; m_fields[hit].select.Open(m_layout.height); Log("Select aberto"); }
          else
@@ -161,7 +173,7 @@ private:
       if(m_collapsed) return;
       if(m_layout.too_small) return;
       bool overlay=(m_open>=0 && m_fields[m_open].select.popup.Contains(x,y));
-      for(int i=0;i<10;i++) if(m_fields[i].Hover(!overlay && m_fields[i].ContainsPoint(x,y))) m_dirty=true;
+      for(int i=0;i<10;i++) if(m_fields[i].Hover(FieldVisible(i) && !overlay && m_fields[i].ContainsPoint(x,y))) m_dirty=true;
       if(m_apply.SetHover(!overlay && m_apply.ContainsPoint(x,y))) m_dirty=true;
       bool down=((StringToInteger(flags)&1)!=0 && m_apply.hover && m_open<0);
       if(down!=m_apply.active) { m_apply.active=down; m_apply.dirty=true; m_dirty=true; }
@@ -200,7 +212,7 @@ private:
       m_layout.Calculate(w,h); Reflow(); Log(StringFormat("Canvas redimensionado: %dx%d",w,h));
      }
 public:
-   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; }
+   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; m_active_indicator=0; }
    bool Create(const long chart,const bool debug)
      {
       m_chart=chart; m_debug=debug; m_state.Reset(); m_name="CanvasGUI_"+IntegerToString(chart)+"_"+IntegerToString((long)GetTickCount64());
@@ -261,9 +273,17 @@ public:
             if(all)
               {
                m_renderer.Box(m_layout.cards[card],GUI_CARD,GUI_BORDER);
-               m_renderer.Text(m_layout.cards[card].x+20,m_layout.cards[card].y+17,"INDICADOR "+IntegerToString(card+1),GUI_TEXT,14,true);
+               string title=card==0 ? "INDICADORES" : "PARÂMETROS / INDICADOR "+IntegerToString(m_active_indicator+1);
+               m_renderer.Text(m_layout.cards[card].x+20,m_layout.cards[card].y+17,title,GUI_TEXT,14,true,m_layout.cards[card].w-40);
+               if(card==1)
+                  m_renderer.Text(m_layout.cards[card].x+20,m_layout.cards[card].y+36,m_state.indicators[m_active_indicator].type==GUI_INDICATOR_MA ? "Média Móvel" : "RSI",GUI_ACCENT,12);
               }
-            for(int j=0;j<5;j++) m_fields[card*5+j].Draw(m_renderer,all);
+            if(card==0)
+              {
+               m_fields[0].Draw(m_renderer,all);
+               m_fields[5].Draw(m_renderer,all);
+              }
+            else for(int j=1;j<5;j++) m_fields[m_active_indicator*5+j].Draw(m_renderer,all);
            }
          if(m_full || m_apply.dirty) m_apply.Draw(m_renderer);
          if(m_full || m_status_dirty)
