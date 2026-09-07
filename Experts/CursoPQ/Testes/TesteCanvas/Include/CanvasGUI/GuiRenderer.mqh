@@ -64,6 +64,8 @@ public:
         }
       m_canvas.TextOut(x,y,value,c);
      }
+   void FocusOutline(const GuiRect &r,const uint c)
+     { m_canvas.Rectangle(r.x+3,r.y+3,r.x+r.w-4,r.y+r.h-4,c); }
    void Chevron(const int x,const int y,const uint c)
      { m_canvas.Line(x-4,y-2,x,y+2,c); m_canvas.Line(x,y+2,x+4,y-2,c); }
   };

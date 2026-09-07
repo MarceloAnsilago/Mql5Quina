@@ -10,7 +10,7 @@ private:
    string m_name,m_message;
    bool m_debug,m_ready,m_saved,m_dirty,m_full,m_card_dirty[2],m_status_dirty,m_error;
    long m_old_show,m_old_mouse,m_old_scroll,m_old_keyboard;
-   int m_open,m_edit;
+   int m_open,m_edit,m_focus;
    int m_active_indicator;
    bool m_summary_dirty,m_summary_draft;
    int m_first_application;
@@ -94,6 +94,55 @@ private:
      }
    bool FieldVisible(const int index)
      { return index>=0 && index<20 && index/5==m_active_indicator && (index%5==0 || m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE); }
+   bool FocusAvailable(const int id)
+     { return id>=0 && id<=10 && (id<4 || id>8 || FieldVisible(m_active_indicator*5+id-4)); }
+   void SetFocus(const int id)
+     {
+      m_focus=id;
+      for(int i=0;i<4;i++) { m_slots[i].focused=id==i; m_slots[i].dirty=true; }
+      for(int i=0;i<20;i++)
+        {
+         bool focused=i/5==m_active_indicator && id==4+i%5;
+         m_fields[i].select.focused=focused; m_fields[i].select.dirty=true;
+         m_fields[i].edit.focused=focused; m_fields[i].edit.dirty=true;
+        }
+      m_apply.focused=id==9; m_apply.dirty=true;
+      m_toggle.focused=id==10; m_toggle.dirty=true;
+      m_card_dirty[0]=true; m_card_dirty[1]=true; m_dirty=true;
+     }
+   void TabFocus(const bool backward)
+     {
+      if(!FinishEdit(true)) return;
+      if(m_open>=0)
+        {
+         int option=m_fields[m_open].select.hot;
+         if(option>=0) SelectOption(option); else CloseSelect();
+        }
+      int id=m_focus;
+      if(id<0) id=backward ? 0 : 10;
+      for(int i=0;i<11;i++)
+        {
+         id=(id+(backward ? 10 : 1))%11;
+         if(FocusAvailable(id)) break;
+        }
+      SetFocus(id);
+      if(id>=4 && id<=8)
+        {
+         int field=m_active_indicator*5+id-4;
+         if(!m_fields[field].is_select)
+           { m_edit=field; m_fields[field].edit.Begin(); }
+        }
+     }
+   void ActivateFocus()
+     {
+      GuiRect r;
+      if(m_focus>=0 && m_focus<4) r=m_slots[m_focus].bounds;
+      else if(m_focus>=4 && m_focus<=8) r=m_fields[m_active_indicator*5+m_focus-4].select.bounds;
+      else if(m_focus==9) r=m_apply.bounds;
+      else if(m_focus==10) r=m_toggle.bounds;
+      else return;
+      Click(r.x+r.w/2,r.y+r.h/2);
+     }
    void ActivateIndicator(const int indicator)
      {
       if(m_active_indicator==indicator) return;
@@ -188,6 +237,7 @@ private:
       for(int i=0;i<4;i++) BuildIndicator(i);
       GuiRect r=m_layout.apply; m_apply.SetBounds(r.x,r.y,r.w,r.h);
       PlaceToggle();
+      SetFocus(FocusAvailable(m_focus) ? m_focus : -1);
       m_full=true; m_dirty=true;
      }
    void CloseSelect()
@@ -221,12 +271,13 @@ private:
          BuildIndicator(card);
          Log(StringFormat("Indicator%d alterado para %s",card+1,option==0 ? "Não usar" : (option==1 ? "Média Móvel" : "RSI")));
         }
+      SetFocus(4+i%5);
       if(changed) { m_summary_dirty=true; m_summary_draft=true; }
       if(changed) Status("Configuração alterada. Salve para registrar.");
      }
    void Click(const int x,const int y)
      {
-      if(m_toggle.ContainsPoint(x,y)) { ToggleInterface(); return; }
+      if(m_toggle.ContainsPoint(x,y)) { SetFocus(10); ToggleInterface(); return; }
       if(m_collapsed) return;
       if(m_layout.too_small) return;
       if(m_apply.active) { m_apply.active=false; m_apply.dirty=true; m_dirty=true; }
@@ -241,7 +292,7 @@ private:
          if(m_slots[slot].ContainsPoint(x,y))
            {
             if(!FinishEdit(true)) return;
-            ActivateIndicator(slot);
+            ActivateIndicator(slot); SetFocus(slot);
             Status("Editando indicador "+IntegerToString(slot+1)+".");
             return;
            }
@@ -251,6 +302,7 @@ private:
       if(!FinishEdit(true)) return;
       if(hit>=0)
         {
+         SetFocus(4+hit%5);
          if(m_fields[hit].field==GUI_TYPE) ActivateIndicator(m_fields[hit].card);
          if(m_fields[hit].is_select)
            { m_open=hit; m_fields[hit].select.Open(m_layout.height); Log("Select aberto"); }
@@ -260,6 +312,7 @@ private:
         }
       else if(m_apply.ContainsPoint(x,y))
         {
+         SetFocus(9);
          if(!m_state.Apply()) { Status("Não foi possível guardar a aplicação.",true); return; }
          m_first_application=(int)MathMax(0,ArraySize(m_state.applications)-1);
          m_summary_dirty=true; m_summary_draft=false;
@@ -289,8 +342,14 @@ private:
      }
    void Key(const int key)
      {
-      if(m_collapsed) return;
+      if(m_collapsed)
+        { if(key==13 || key==32) ToggleInterface(); return; }
       if(m_layout.too_small) return;
+      if(key==9)
+        {
+         TabFocus((TerminalInfoInteger(TERMINAL_KEYSTATE_SHIFT)&0x8000)!=0);
+         return;
+        }
       if(m_open>=0)
         {
          if(key==27) CloseSelect();
@@ -298,10 +357,25 @@ private:
          else if(key==13) SelectOption(m_fields[m_open].select.hot);
          return;
         }
-      if(m_edit<0) return;
-      if(key==27) { FinishEdit(false); return; }
-      if(key==13 || key==9) { FinishEdit(true); return; }
-      if(m_fields[m_edit].edit.Key(key)) { m_dirty=true; if(m_error) Status("Digite o valor. Enter salva; Esc cancela."); }
+      if(m_edit>=0)
+        {
+         if(key==27) { FinishEdit(false); return; }
+         if(key==13) { FinishEdit(true); return; }
+         if(m_fields[m_edit].edit.Key(key)) { m_dirty=true; if(m_error) Status("Digite o valor. Enter salva; Esc cancela."); }
+         return;
+        }
+      if(key==13 || key==32) { ActivateFocus(); return; }
+      if(m_focus>=4 && m_focus<=8)
+        {
+         int field=m_active_indicator*5+m_focus-4;
+         if(m_fields[field].is_select)
+           { if(key==38 || key==40) ActivateFocus(); }
+         else if((key>=48 && key<=57) || (key>=96 && key<=105) || key==189 || key==109 || key==8 || key==46 || key==190 || key==188 || key==110)
+           {
+            m_edit=field; m_fields[field].edit.Begin();
+            m_fields[field].edit.Key(key); m_dirty=true;
+           }
+        }
      }
    void Resize()
      {
@@ -316,7 +390,7 @@ private:
       m_layout.Calculate(w,h); Reflow(); Log(StringFormat("Canvas redimensionado: %dx%d",w,h));
      }
 public:
-   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; m_active_indicator=0; m_summary_dirty=false; m_summary_draft=true; m_first_application=0; }
+   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_focus=-1; m_error=false; m_collapsed=false; m_active_indicator=0; m_summary_dirty=false; m_summary_draft=true; m_first_application=0; }
    bool Create(const long chart,const bool debug)
      {
       m_chart=chart; m_debug=debug; m_state.Reset(); m_name="CanvasGUI_"+IntegerToString(chart)+"_"+IntegerToString((long)GetTickCount64());
