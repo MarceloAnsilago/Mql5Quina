@@ -6,7 +6,7 @@ Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da
 
 1. Abra `TesteCanvas.mqproj` no MetaEditor e compile `TesteCanvas.mq5` com F7.
 2. No Navegador do MT5, atualize a lista de Experts e arraste `TesteCanvas` para um gráfico. Não é necessário habilitar negociação algorítmica.
-3. O card **Indicadores** oferece quatro botões numerados com seleção exclusiva. Escolha 1, 2, 3 ou 4 e selecione Média Móvel ou RSI. O card **Parâmetros / Indicador N** mostra o nome e os quatro campos do indicador ativo. O indicador 1 inicia como MA; 2, 3 e 4 como RSI.
+3. O card **Indicadores** oferece quatro botões numerados com seleção exclusiva. Escolha 1, 2, 3 ou 4 e selecione Não usar, Média Móvel ou RSI. O card **Parâmetros / Indicador N** mostra o nome e os quatro campos do indicador ativo. Os quatro indicadores iniciam em Não usar. Nessa opção, o painel de parâmetros e a coluna correspondente do resumo ficam vazios. Os parâmetros anteriores são preservados em memória ao desabilitar e reativar um indicador.
 4. Configure períodos diferentes nos quatro indicadores e alterne entre eles. Troque MA ↔ RSI: os valores de cada tipo permanecem independentes por indicador. Uma edição inválida bloqueia a troca até ser corrigida ou cancelada com Escape. As etapas 2–6 continuam apenas visuais.
 5. Clique num campo e digite: o primeiro dígito substitui o valor anterior. Enter, Tab ou clique fora confirmam; Escape cancela. Setas, Home, End, Backspace e Delete permitem edição por posição. Ponto, vírgula e decimal do teclado numérico são aceitos.
 6. Teste período zero, texto vazio, níveis fora de 0–100 e inferior ≥ superior: o campo deve ficar vermelho, sem alterar o estado. Corrija ou use Escape para continuar.
@@ -61,7 +61,7 @@ O teclado numérico foi implementado em Canvas porque o escopo não exige ediç�
 
 ## Resumo e histórico de aplicações
 
-A área inferior tem quatro colunas fixas, uma por indicador, com tipo, período, preço e método/shift ou níveis RSI. Antes de salvar, acompanha os valores confirmados em edição. **Salvar indicadores** registra uma cópia dos quatro indicadores e imprime seus parâmetros no log. Depois de salvar, o resumo exibe a aplicação selecionada, identificada no título; as setas navegam por aplicações anteriores sem alterar a edição. Um novo salvamento mostra a aplicação mais recente.
+A área inferior tem quatro colunas fixas, uma por indicador, com tipo, período, preço e método/shift ou níveis RSI. Ao editar, acompanha os valores confirmados, inclusive a seleção Não usar. **Salvar indicadores** registra uma cópia dos quatro indicadores e imprime seus parâmetros no log. Depois de salvar, o resumo exibe a aplicação selecionada, identificada no título; uma nova edição volta ao resumo atual, sem modificar o histórico; as setas navegam por aplicações anteriores sem alterar a edição. Um novo salvamento mostra a aplicação mais recente.
 
 O histórico e os parâmetros permanecem em memória, inclusive ao recolher/reabrir. Reinicializar ou remover o EA restaura os padrões. Continua existindo apenas um objeto Canvas.
 

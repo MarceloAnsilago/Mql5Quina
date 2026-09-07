@@ -1,6 +1,6 @@
 #ifndef CANVAS_GUI_STATE_MQH
 #define CANVAS_GUI_STATE_MQH
-enum ENUM_GUI_INDICATOR_TYPE { GUI_INDICATOR_MA, GUI_INDICATOR_RSI };
+enum ENUM_GUI_INDICATOR_TYPE { GUI_INDICATOR_NONE=-1, GUI_INDICATOR_MA, GUI_INDICATOR_RSI };
 enum ENUM_GUI_FIELD { GUI_TYPE, GUI_PERIOD, GUI_METHOD, GUI_PRICE, GUI_SHIFT, GUI_LOWER, GUI_UPPER };
 struct IndicatorConfig
   {
@@ -43,7 +43,7 @@ public:
       ArrayFree(applications);
       for(int i=0;i<4;i++)
         {
-         indicators[i].type=(i==0 ? GUI_INDICATOR_MA : GUI_INDICATOR_RSI);
+         indicators[i].type=GUI_INDICATOR_NONE;
          indicators[i].maPeriod=20; indicators[i].maMethod=MODE_EMA;
          indicators[i].maPrice=PRICE_CLOSE; indicators[i].maShift=0;
          indicators[i].rsiPeriod=14; indicators[i].rsiPrice=PRICE_CLOSE;
@@ -53,13 +53,13 @@ public:
    int Choice(const int card,const ENUM_GUI_FIELD field)
      {
       IndicatorConfig c=indicators[card];
-      if(field==GUI_TYPE) return (int)c.type;
+      if(field==GUI_TYPE) return (int)c.type+1;
       if(field==GUI_METHOD) return (int)c.maMethod;
       return (int)(c.type==GUI_INDICATOR_MA ? c.maPrice : c.rsiPrice)-1;
      }
    void Choose(const int card,const ENUM_GUI_FIELD field,const int index)
      {
-      if(field==GUI_TYPE) indicators[card].type=(ENUM_GUI_INDICATOR_TYPE)index;
+      if(field==GUI_TYPE) indicators[card].type=(ENUM_GUI_INDICATOR_TYPE)(index-1);
       else if(field==GUI_METHOD) indicators[card].maMethod=(ENUM_MA_METHOD)index;
       else if(indicators[card].type==GUI_INDICATOR_MA) indicators[card].maPrice=(ENUM_APPLIED_PRICE)(index+1);
       else indicators[card].rsiPrice=(ENUM_APPLIED_PRICE)(index+1);
@@ -113,6 +113,7 @@ public:
       for(int i=0;i<4;i++)
         {
          IndicatorConfig c=indicators[i];
+         if(c.type==GUI_INDICATOR_NONE) continue;
          PrintFormat("Indicador %d: %s",i+1,c.type==GUI_INDICATOR_MA ? "Média Móvel" : "RSI");
          Print("Período: ",c.type==GUI_INDICATOR_MA ? c.maPeriod : c.rsiPeriod);
          if(c.type==GUI_INDICATOR_MA) Print("Método: ",GuiMethodName((int)c.maMethod));

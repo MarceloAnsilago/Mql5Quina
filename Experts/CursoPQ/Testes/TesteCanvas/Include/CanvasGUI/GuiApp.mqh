@@ -12,7 +12,7 @@ private:
    long m_old_show,m_old_mouse,m_old_scroll,m_old_keyboard;
    int m_open,m_edit;
    int m_active_indicator;
-   bool m_summary_dirty;
+   bool m_summary_dirty,m_summary_draft;
    int m_first_application;
    CGuiButton m_previous,m_next,m_slots[4];
    int SummaryColumns() { return 1; }
@@ -35,13 +35,14 @@ private:
       GuiRect r=m_layout.summary;
       m_renderer.Box(r,GUI_CARD,GUI_BORDER);
       PlaceHistoryNavigation();
-      string heading=m_state.has_applied ? "CONFIGURAÇÃO SALVA / "+IntegerToString(m_first_application+1) : "RESUMO DOS INDICADORES";
+      string heading=m_state.has_applied && !m_summary_draft ? "CONFIGURAÇÃO SALVA / "+IntegerToString(m_first_application+1) : "RESUMO DOS INDICADORES";
       m_renderer.Text(r.x+20,r.y+14,heading,GUI_TEXT,13,true,r.w-180);
       int cw=(r.w-40)/4;
       for(int i=0;i<4;i++)
         {
          IndicatorConfig c=m_state.indicators[i];
-         if(m_state.has_applied) c=m_state.applications[m_first_application].indicators[i];
+         if(m_state.has_applied && !m_summary_draft) c=m_state.applications[m_first_application].indicators[i];
+         if(c.type==GUI_INDICATOR_NONE) continue;
          bool ma=c.type==GUI_INDICATOR_MA;
          int x=r.x+20+i*cw;
          if(i>0) { GuiRect line; line.Set(x-10,r.y+44,1,r.h-58); m_renderer.Fill(line,GUI_BORDER); }
@@ -109,7 +110,7 @@ private:
         }
      }
    bool FieldVisible(const int index)
-     { return index>=0 && index<20 && index/5==m_active_indicator; }
+     { return index>=0 && index<20 && index/5==m_active_indicator && (index%5==0 || m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE); }
    void ActivateIndicator(const int indicator)
      {
       if(m_active_indicator==indicator) return;
@@ -184,7 +185,7 @@ private:
      }
    void BuildIndicator(const int card)
      {
-      BindField(card,0,GUI_TYPE,"Indicador","Média Móvel|RSI");
+      BindField(card,0,GUI_TYPE,"Indicador","Não usar|Média Móvel|RSI");
       BindField(card,1,GUI_PERIOD,"Período");
       if(m_state.indicators[card].type==GUI_INDICATOR_MA)
         {
@@ -221,6 +222,7 @@ private:
          m_fields[i].edit.SetValue(m_state.Value(m_fields[i].card,m_fields[i].field));
         }
       m_fields[i].edit.End(); m_edit=-1; m_dirty=true; m_summary_dirty=true;
+      if(save) m_summary_draft=true;
       Status(save ? "Valor atualizado. Salve para registrar." : "Edição cancelada.");
       return true;
      }
@@ -235,9 +237,9 @@ private:
       if(changed && m_fields[i].field==GUI_TYPE)
         {
          BuildIndicator(card);
-         Log(StringFormat("Indicator%d alterado para %s",card+1,option==0 ? "Média Móvel" : "RSI"));
+         Log(StringFormat("Indicator%d alterado para %s",card+1,option==0 ? "Não usar" : (option==1 ? "Média Móvel" : "RSI")));
         }
-      if(changed) m_summary_dirty=true;
+      if(changed) { m_summary_dirty=true; m_summary_draft=true; }
       if(changed) Status("Configuração alterada. Salve para registrar.");
      }
    void Click(const int x,const int y)
@@ -263,6 +265,7 @@ private:
            }
       if(m_previous.ContainsPoint(x,y) || m_next.ContainsPoint(x,y))
         {
+         m_summary_draft=false;
          m_first_application+=m_previous.ContainsPoint(x,y) ? -1 : 1;
          PlaceHistoryNavigation(); m_summary_dirty=true; m_dirty=true; return;
         }
@@ -283,7 +286,7 @@ private:
         {
          if(!m_state.Apply()) { Status("Não foi possível guardar a aplicação.",true); return; }
          m_first_application=(int)MathMax(0,ArraySize(m_state.applications)-SummaryColumns());
-         m_summary_dirty=true;
+         m_summary_dirty=true; m_summary_draft=false;
          m_state.PrintConfiguration(); Status("Os quatro indicadores foram salvos no histórico."); Log("Configuração aplicada");
         }
      }
@@ -340,7 +343,7 @@ private:
       m_layout.Calculate(w,h); Reflow(); Log(StringFormat("Canvas redimensionado: %dx%d",w,h));
      }
 public:
-   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; m_active_indicator=0; m_summary_dirty=false; m_first_application=0; }
+   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_error=false; m_collapsed=false; m_active_indicator=0; m_summary_dirty=false; m_summary_draft=true; m_first_application=0; }
    bool Create(const long chart,const bool debug)
      {
       m_chart=chart; m_debug=debug; m_state.Reset(); m_name="CanvasGUI_"+IntegerToString(chart)+"_"+IntegerToString((long)GetTickCount64());
@@ -402,7 +405,8 @@ public:
                m_renderer.Box(m_layout.cards[card],GUI_CARD,GUI_BORDER);
                GuiRect c=m_layout.cards[card];
                string title=card==0 ? "INDICADORES" : "PARÂMETROS / INDICADOR "+IntegerToString(m_active_indicator+1);
-               m_renderer.Text(c.x+24,c.y+14,title,GUI_TEXT,14,true,c.w-48);
+               if(card==0 || m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE)
+                  m_renderer.Text(c.x+24,c.y+14,title,GUI_TEXT,14,true,c.w-48);
                if(card==0)
                  {
                   m_renderer.Text(c.x+24,c.y+38,"Qual indicador deseja configurar?",GUI_MUTED,12,false,c.w-48);
@@ -412,10 +416,10 @@ public:
                      m_slots[slot].Draw(m_renderer);
                     }
                  }
-               else m_renderer.Text(c.x+24,c.y+38,m_state.indicators[m_active_indicator].type==GUI_INDICATOR_MA ? "Média Móvel" : "RSI",GUI_ACCENT,14,true,c.w-48);
+               else if(m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE) m_renderer.Text(c.x+24,c.y+38,m_state.indicators[m_active_indicator].type==GUI_INDICATOR_MA ? "Média Móvel" : "RSI",GUI_ACCENT,14,true,c.w-48);
               }
             if(card==0) m_fields[m_active_indicator*5].Draw(m_renderer,all);
-            else for(int j=1;j<5;j++) m_fields[m_active_indicator*5+j].Draw(m_renderer,all);
+            else if(m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE) for(int j=1;j<5;j++) m_fields[m_active_indicator*5+j].Draw(m_renderer,all);
            }
          if(m_full || m_apply.dirty) m_apply.Draw(m_renderer);
          if(m_full || m_summary_dirty) DrawSummary();

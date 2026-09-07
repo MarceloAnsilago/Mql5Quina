@@ -7,12 +7,15 @@ void Check(const bool condition,const string label)
 void OnStart()
   {
    CGuiState state; state.Reset(); string error;
+   for(int i=0;i<4;i++) Check(state.indicators[i].type==GUI_INDICATOR_NONE && state.Choice(i,GUI_TYPE)==0,"Não usar padrão");
+   state.Choose(0,GUI_TYPE,GUI_INDICATOR_MA+1);
+   state.Choose(1,GUI_TYPE,GUI_INDICATOR_RSI+1);
    Check(state.indicators[0].type==GUI_INDICATOR_MA && state.indicators[0].maPeriod==20 && state.indicators[0].maMethod==MODE_EMA,"MA inicial");
    Check(state.indicators[1].type==GUI_INDICATOR_RSI && state.indicators[1].rsiPeriod==14 && state.indicators[1].rsiLower==30 && state.indicators[1].rsiUpper==70,"RSI inicial");
    Check(state.Commit(0,GUI_PERIOD,"55",error),"Editar MA");
-   state.Choose(0,GUI_TYPE,1);
+   state.Choose(0,GUI_TYPE,GUI_INDICATOR_RSI+1);
    Check(state.Commit(0,GUI_PERIOD,"9",error),"Editar RSI");
-   state.Choose(0,GUI_TYPE,0);
+   state.Choose(0,GUI_TYPE,GUI_INDICATOR_MA+1);
    Check(state.indicators[0].maPeriod==55 && state.indicators[0].rsiPeriod==9,"Preservar parâmetros ao alternar tipo");
    Check(state.indicators[1].rsiPeriod==14,"Independência dos cards");
    Check(!state.Commit(0,GUI_PERIOD,"0",error) && state.indicators[0].maPeriod==55,"Rejeitar zero sem alterar estado");
@@ -44,17 +47,17 @@ void OnStart()
    Check(state.applied[0].maPeriod==60,"Reaplicar atualiza a lista");
    Check(ArraySize(state.applications)==2,"Cada aplicação acrescenta uma coluna");
    Check(state.applications[0].indicators[0].maPeriod==55 && state.applications[1].indicators[0].maPeriod==60,"Preservar aplicação anterior ao reaplicar");
-   state.Choose(0,GUI_TYPE,1);
+   state.Choose(0,GUI_TYPE,GUI_INDICATOR_RSI+1);
    Check(state.applications[0].indicators[0].type==GUI_INDICATOR_MA && state.applications[1].indicators[0].type==GUI_INDICATOR_MA,"Troca de tipo não altera histórico");
    state.Reset();
    Check(!state.has_applied && ArraySize(state.applications)==0,"Reinicialização limpa histórico");
    for(int slot=0;slot<4;slot++)
      {
-      state.Choose(slot,GUI_TYPE,0);
+      state.Choose(slot,GUI_TYPE,GUI_INDICATOR_MA+1);
       Check(state.Commit(slot,GUI_PERIOD,IntegerToString(20+slot),error),"Editar MA slot "+IntegerToString(slot+1));
-      state.Choose(slot,GUI_TYPE,1);
+      state.Choose(slot,GUI_TYPE,GUI_INDICATOR_RSI+1);
       Check(state.Commit(slot,GUI_PERIOD,IntegerToString(10+slot),error),"Editar RSI slot "+IntegerToString(slot+1));
-      state.Choose(slot,GUI_TYPE,0);
+      state.Choose(slot,GUI_TYPE,GUI_INDICATOR_MA+1);
       Check(state.indicators[slot].maPeriod==20+slot && state.indicators[slot].rsiPeriod==10+slot,"Preservar tipos slot "+IntegerToString(slot+1));
      }
    Check(state.Apply(),"Salvar quatro slots");
@@ -64,5 +67,13 @@ void OnStart()
    Check(state.Apply() && state.applications[1].indicators[3].maPeriod==99,"Reaplicar captura slot 4");
    state.Reset();
    Check(!state.has_applied && state.indicators[3].rsiPeriod==14,"Reset inclui slot 4");
+   state.Choose(3,GUI_TYPE,GUI_INDICATOR_MA+1);
+   state.Commit(3,GUI_PERIOD,"77",error);
+   state.Choose(3,GUI_TYPE,0);
+   Check(state.indicators[3].type==GUI_INDICATOR_NONE,"Desabilitar slot 4");
+   Check(state.Apply() && state.applications[0].indicators[3].type==GUI_INDICATOR_NONE,"Salvar slot desabilitado");
+   state.Choose(3,GUI_TYPE,GUI_INDICATOR_MA+1);
+   Check(state.indicators[3].maPeriod==77,"Reativar preserva parâmetros");
+   Check(state.applications[0].indicators[3].type==GUI_INDICATOR_NONE,"Reativar não altera histórico");
    PrintFormat("[GuiStateTests] %d verificações, %d falhas",checks,failures);
   }
