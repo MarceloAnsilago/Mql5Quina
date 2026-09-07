@@ -1,4 +1,4 @@
-﻿# TesteCanvas
+# TesteCanvas
 
 Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da biblioteca padrão do MT5. Não envia ordens, não cria handles de indicadores e não implementa estratégia.
 
@@ -6,14 +6,14 @@ Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da
 
 1. Abra `TesteCanvas.mqproj` no MetaEditor e compile `TesteCanvas.mq5` com F7.
 2. No Navegador do MT5, atualize a lista de Experts e arraste `TesteCanvas` para um gráfico. Não é necessário habilitar negociação algorítmica.
-3. O primeiro card contém os seletores **Indicador 1** e **Indicador 2**, um abaixo do outro. O segundo card mostra apenas os parâmetros do indicador ativo, identificado no título. Inicialmente aparece o indicador 1: MA / 20 / EMA / Close / 0.
-4. Clique no seletor Indicador 2 para exibir seus parâmetros: RSI / 14 / Close / 30 / 70. Abrir um seletor já ativa o indicador correspondente, mesmo sem trocar o tipo. Alterne MA ↔ RSI e volte ao Indicador 1; os valores dos dois indicadores e de cada tipo permanecem independentes em memória.
+3. A interface abre no **Passo 1 de 6 — Indicadores**, com cabeçalho UNIVERSAL EA e etapas futuras sinalizadas. Cada indicador tem seu próprio card, com seletor e quatro parâmetros sempre visíveis. Inicialmente: MA / 20 / EMA / Close / 0 e RSI / 14 / Close / 30 / 70.
+4. Alterne MA ↔ RSI em cada card; os valores dos dois indicadores e de cada tipo permanecem independentes em memória. As etapas 2–6 são apenas uma preparação visual, sem navegação nesta versão.
 5. Clique num campo e digite: o primeiro dígito substitui o valor anterior. Enter, Tab ou clique fora confirmam; Escape cancela. Setas, Home, End, Backspace e Delete permitem edição por posição. Ponto, vírgula e decimal do teclado numérico são aceitos.
 6. Teste período zero, texto vazio, níveis fora de 0–100 e inferior ≥ superior: o campo deve ficar vermelho, sem alterar o estado. Corrija ou use Escape para continuar.
-7. Ative cada indicador no primeiro card e abra sua lista de preço no segundo card. Verifique sobreposição, abertura para cima perto da borda, fechamento por clique externo e navegação por setas/Enter/Escape.
-8. Clique APLICAR e confira os valores no log de Experts da Caixa de Ferramentas. `Print()` de EA é exibido em **Experts**, não necessariamente na aba separada **Diário/Journal**. O botão sempre imprime a configuração; `DebugGUI=false` desativa apenas mensagens de diagnóstico.
+7. Abra a lista de preço em cada card. Verifique sobreposição, abertura para cima perto da borda, fechamento por clique externo e navegação por setas/Enter/Escape.
+8. Clique Salvar indicadores e confira os valores no log de Experts da Caixa de Ferramentas. `Print()` de EA é exibido em **Experts**, não necessariamente na aba separada **Diário/Journal**. O botão sempre imprime a configuração; `DebugGUI=false` desativa apenas mensagens de diagnóstico.
 9. Redimensione o gráfico e remova o EA: o Canvas deve acompanhar o tamanho e as propriedades do gráfico alteradas pelo experimento devem ser restauradas na remoção.
-10. Clique **RECOLHER**, no canto superior direito. O gráfico reaparece e seus controles de rolagem e teclado voltam à configuração original. Clique **EXIBIR INTERFACE**, no canto superior esquerdo, para retornar. Teste também redimensionar o gráfico enquanto a interface está recolhida.
+10. Clique **Recolher**, no canto superior direito. O gráfico reaparece e seus controles de rolagem e teclado voltam à configuração original. Clique **EXIBIR INTERFACE**, no canto superior esquerdo, para retornar. Teste também redimensionar o gráfico enquanto a interface está recolhida.
 
 Recolher preserva as configurações e até uma edição ainda não confirmada; dropdowns são fechados. O mesmo Canvas é reduzido a 176 × 40 pixels para desenhar o botão de retorno, mantendo apenas um objeto gráfico e liberando o restante do gráfico para interação. Ao reabrir, as dimensões atuais são lidas novamente.
 
@@ -50,7 +50,7 @@ O teclado numérico foi implementado em Canvas porque o escopo não exige ediç�
 
 ## Limitações conhecidas
 
-- Área mínima: 600 × 770 pixels com cards empilhados, ou 1000 × 630 com cards lado a lado. Abaixo disso aparece uma instrução para ampliar. Não há rolagem.
+- Layout adaptável à altura: em áreas mais baixas, reduz os espaçamentos e mantém campos, ação e histórico. Exemplos mínimos: 1120 × 628 com navegação lateral; 960 × 652 com cards lado a lado e etapas no topo; 600 × 904 com cards empilhados. Abaixo do espaço necessário, o aviso informa a área atual e a altura calculada. Não há rolagem. A navegação lateral aparece a partir de 1120 pixels de largura.
 - Medidas em pixels; escala de DPI não é ajustada automaticamente.
 - Edição numérica limitada a 12 caracteres; períodos 1–100000, shift ±100000 e níveis RSI 0–100 com até duas casas decimais e inferior < superior.
 - Sem clipboard, seleção arbitrária, Ctrl+A ou navegação completa por Tab. Tab confirma a edição. O gráfico deve estar com foco para receber teclado.
@@ -61,10 +61,18 @@ O teclado numérico foi implementado em Canvas porque o escopo não exige ediç�
 
 ## Histórico de aplicações
 
-Cada clique em APLICAR acrescenta uma coluna numerada (APLICAÇÃO 1, APLICAÇÃO 2, etc.), com uma cópia dos dois indicadores e respectivos parâmetros. As colunas anteriores não são sobrescritas, mesmo quando o tipo do indicador muda. Antes da primeira aplicação, aparece uma orientação.
+Cada clique em Salvar indicadores acrescenta uma coluna numerada (APLICAÇÃO 1, APLICAÇÃO 2, etc.), com uma cópia dos dois indicadores e respectivos parâmetros. As colunas anteriores não são sobrescritas, mesmo quando o tipo do indicador muda. Antes da primeira aplicação, aparece uma orientação.
 
 A área mostra duas colunas lado a lado quando tem pelo menos 880 pixels de largura; abaixo disso, mostra uma por vez. As setas < e > navegam pelo histórico sem alterar os campos em edição. Uma nova aplicação traz as colunas mais recentes para a tela. As setas ficam desabilitadas nos limites.
 
 Editar os campos, recolher/reabrir ou redimensionar não altera as aplicações já registradas. Valores inválidos impedem a aplicação. O histórico permanece apenas em memória até reinicializar/remover o EA; seu consumo de memória cresce com o número de aplicações. Os controles continuam desenhados no mesmo Canvas, sem objetos MT5 adicionais.
 
 Para validar: aplique os valores iniciais, mude um período e aplique novamente. Confira as duas colunas e seus valores diferentes. Faça uma terceira aplicação, volte à primeira pelas setas e teste recolher/reabrir e redimensionar. O script de estado verifica também a preservação do histórico e sua limpeza ao reinicializar. Compilação verificada; execução do script e validação visual continuam pendentes no terminal.
+
+## Refatoração visual — assistente de estratégias
+
+A estrutura existente de eventos, edição numérica, validação, estado e histórico foi mantida. O layout distribui os dez controles existentes em dois cards independentes. A paleta usa superfícies claras, bordas neutras e azul para foco e ação principal; os botões de recolher e navegar pelo histórico usam estilo secundário.
+
+**Salvar indicadores** executa a mesma aplicação e impressão de configuração anteriores. Não avança para etapas ainda não implementadas. Os dois indicadores continuam obrigatórios como no estado original; a seleção opcional de apenas um indicador pertence a uma etapa funcional futura.
+
+Validação desta refatoração: compilação no MetaEditor e revisão dos limites geométricos do layout. A interação visual no terminal e a execução do script de estado não foram automatizadas. Ao validar no MT5, confira os dois cards simultaneamente, troca MA/RSI, edição inválida, dropdowns sobre outros campos, histórico e recolher/reabrir com edição pendente.

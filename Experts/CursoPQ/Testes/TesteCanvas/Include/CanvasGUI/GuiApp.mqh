@@ -20,6 +20,7 @@ private:
      {
       GuiRect r=m_layout.summary;
       m_previous.caption="<"; m_next.caption=">";
+      m_previous.secondary=true; m_next.secondary=true;
       m_previous.SetBounds(r.x+r.w-140,r.y+8,56,30);
       m_next.SetBounds(r.x+r.w-76,r.y+8,56,30);
       int last=(int)MathMax(0,ArraySize(m_state.applications)-SummaryColumns());
@@ -36,8 +37,8 @@ private:
       PlaceHistoryNavigation();
       if(!m_state.has_applied)
         {
-         m_renderer.Text(r.x+20,r.y+16,"CONFIGURAÇÕES APLICADAS",GUI_TEXT,14,true,r.w-180);
-         m_renderer.Text(r.x+20,r.y+52,"Clique em APLICAR para listar os indicadores e parâmetros.",GUI_MUTED,13,false,r.w-40);
+         m_renderer.Text(r.x+20,r.y+16,"HISTÓRICO DE CONFIGURAÇÕES",GUI_TEXT,14,true,r.w-180);
+         m_renderer.Text(r.x+20,r.y+52,"As configurações salvas aparecerão aqui.",GUI_MUTED,13,false,r.w-40);
          m_previous.Draw(m_renderer); m_next.Draw(m_renderer);
          return;
         }
@@ -56,7 +57,7 @@ private:
         {
          IndicatorConfig c=m_state.applications[application].indicators[i];
          bool ma=(c.type==GUI_INDICATOR_MA);
-         int y=r.y+46+i*62;
+         int y=r.y+42+i*(m_layout.dense ? 54 : 62);
          m_renderer.Text(x,y,"Indicador "+IntegerToString(i+1)+" · "+(ma ? "Média Móvel" : "RSI"),GUI_ACCENT,13,true,column_width);
          string first="Período: "+IntegerToString(ma ? c.maPeriod : c.rsiPeriod);
          first+="   |   Preço: "+GuiPriceName((int)(ma ? c.maPrice : c.rsiPrice)-1);
@@ -68,8 +69,52 @@ private:
         }
       m_previous.Draw(m_renderer); m_next.Draw(m_renderer);
      }
+   // Wizard shell is presentation only. Future steps have no hit targets.
+   void DrawShell()
+     {
+      GuiRect r; r.Set(0,0,m_layout.width,76); m_renderer.Fill(r,GUI_CARD);
+      r.Set(0,75,m_layout.width,1); m_renderer.Fill(r,GUI_BORDER);
+      m_renderer.Text(28,27,"UNIVERSAL EA",GUI_TEXT,19,true);
+      if(m_layout.width>=880)
+        {
+         r.Set(m_layout.width-356,25,8,8); m_renderer.Round(r,0xFF16A085,4);
+         m_renderer.Text(m_layout.width-338,22,"CONFIGURAÇÃO",GUI_MUTED,12,true);
+        }
+      string steps[6]={"Indicadores","Regras","Gestão","Filtros","Revisão","Ativação"};
+      if(m_layout.sidebar>0)
+        {
+         r.Set(0,76,m_layout.sidebar,m_layout.height-76); m_renderer.Fill(r,GUI_CARD);
+         r.Set(m_layout.sidebar-1,76,1,m_layout.height-76); m_renderer.Fill(r,GUI_BORDER);
+         m_renderer.Text(24,108,"SUA ESTRATÉGIA",GUI_MUTED,11,true);
+         for(int i=0;i<6;i++)
+           {
+            int y=144+i*(m_layout.dense ? 48 : 58);
+            if(i==0) { r.Set(12,y-8,m_layout.sidebar-24,44); m_renderer.Round(r,GUI_HOVER); }
+            m_renderer.Text(26,y,IntegerToString(i+1),i==0 ? GUI_ACCENT : GUI_MUTED,14,true);
+            m_renderer.Text(52,y,steps[i],i==0 ? GUI_ACCENT : GUI_MUTED,14,i==0);
+           }
+         m_renderer.Text(24,m_layout.dense ? 458 : 516,"Etapas 2–6 em breve",GUI_MUTED,11);
+        }
+      else
+        {
+         m_renderer.Text(m_layout.left,90,"Indicadores  /  Regras  /  Gestão  /  Filtros  /  Revisão  /  Ativação",GUI_MUTED,12,false,m_layout.content_width);
+        }
+      int y=m_layout.sidebar>0 ? 92 : (m_layout.dense ? 116 : 130);
+      m_renderer.Text(m_layout.left,y,"PASSO 1 DE 6",GUI_ACCENT,12,true);
+      if(m_layout.dense)
+        {
+         m_renderer.Text(m_layout.left,y+21,"Configure os indicadores da sua estratégia",GUI_TEXT,24,true,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+49,"Escolha até dois indicadores e ajuste seus parâmetros.",GUI_MUTED,13,false,m_layout.content_width);
+        }
+      else
+        {
+         m_renderer.Text(m_layout.left,y+30,"Configure os indicadores",GUI_TEXT,28,true,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+65,"da sua estratégia",GUI_TEXT,28,true,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+100,"Escolha até dois indicadores e ajuste seus parâmetros.",GUI_MUTED,14,false,m_layout.content_width);
+        }
+     }
    bool FieldVisible(const int index)
-     { return index%5==0 || index/5==m_active_indicator; }
+     { return index>=0 && index<10; }
    void ActivateIndicator(const int indicator)
      {
       if(m_active_indicator==indicator) return;
@@ -124,8 +169,8 @@ private:
    void PlaceToggle()
      {
       PlaceHistoryNavigation();
-      m_toggle.caption="RECOLHER";
-      m_toggle.SetBounds((int)MathMax(0,m_layout.width-172),m_layout.too_small ? 110 : 26,148,40);
+      m_toggle.caption="Recolher"; m_toggle.secondary=true;
+      m_toggle.SetBounds((int)MathMax(0,m_layout.width-172),m_layout.too_small ? 110 : 18,148,40);
      }
    void Log(const string value) { if(m_debug) Print("[GUI] ",value); }
    void Status(const string value,const bool error=false)
@@ -138,7 +183,7 @@ private:
      }
    void BuildIndicator(const int card)
      {
-      BindField(card,0,GUI_TYPE,"Indicador "+IntegerToString(card+1),"Média Móvel|RSI");
+      BindField(card,0,GUI_TYPE,"Indicador","Média Móvel|RSI");
       BindField(card,1,GUI_PERIOD,"Período");
       if(m_state.indicators[card].type==GUI_INDICATOR_MA)
         {
@@ -175,7 +220,7 @@ private:
          m_fields[i].edit.SetValue(m_state.Value(m_fields[i].card,m_fields[i].field));
         }
       m_fields[i].edit.End(); m_edit=-1; m_dirty=true;
-      Status(save ? "Valor atualizado. Aplique para registrar." : "Edição cancelada.");
+      Status(save ? "Valor atualizado. Salve para registrar." : "Edição cancelada.");
       return true;
      }
    void SelectOption(const int option)
@@ -191,7 +236,7 @@ private:
          BuildIndicator(card);
          Log(StringFormat("Indicator%d alterado para %s",card+1,option==0 ? "Média Móvel" : "RSI"));
         }
-      if(changed) Status("Configuração alterada. Clique em APLICAR.");
+      if(changed) Status("Configuração alterada. Salve para registrar.");
      }
    void Click(const int x,const int y)
      {
@@ -295,8 +340,8 @@ public:
       if(!ChartSetInteger(chart,CHART_SHOW,false) || !ChartSetInteger(chart,CHART_EVENT_MOUSE_MOVE,true)
          || !ChartSetInteger(chart,CHART_MOUSE_SCROLL,false) || !ChartSetInteger(chart,CHART_KEYBOARD_CONTROL,false))
         { Print("[GUI] Falha ao configurar eventos do gráfico: ",GetLastError()); Destroy(); return false; }
-      m_layout.Calculate(w,h); m_apply.caption="APLICAR";
-      m_ready=true; Reflow(); Status("Experimento visual · sem operações."); Render();
+      m_layout.Calculate(w,h); m_apply.caption="Salvar indicadores";
+      m_ready=true; Reflow(); Status("Configure os dois indicadores para começar."); Render();
       Log("Inicializada"); Log(StringFormat("Tamanho: %dx%d",w,h)); return true;
      }
    void Destroy()
@@ -327,12 +372,11 @@ public:
          if(m_layout.too_small)
            {
             m_renderer.Text(24,32,"Amplie a área do gráfico",GUI_TEXT,22,true);
-            m_renderer.Text(24,72,"Mínimo: 600 x 770 ou 1000 x 630 pixels.",GUI_MUTED,14,false,(int)MathMax(60,m_layout.width-48));
+            m_renderer.Text(24,72,"Área atual: "+IntegerToString(m_layout.width)+" x "+IntegerToString(m_layout.height)+". Altura necessária: "+IntegerToString(m_layout.summary.y+m_layout.summary.h+8)+" px.",GUI_MUTED,14,false,(int)MathMax(60,m_layout.width-48));
            }
          else
            {
-            m_renderer.Text(m_layout.left,26,"STRATEGY BUILDER",GUI_TEXT,26,true,m_toggle.bounds.x-m_layout.left-16);
-            m_renderer.Text(m_layout.left,65,"Configure os indicadores da estratégia",GUI_MUTED,15);
+            DrawShell();
            }
         }
       if(!m_layout.too_small)
@@ -343,17 +387,10 @@ public:
             if(all)
               {
                m_renderer.Box(m_layout.cards[card],GUI_CARD,GUI_BORDER);
-               string title=card==0 ? "INDICADORES" : "PARÂMETROS / INDICADOR "+IntegerToString(m_active_indicator+1);
-               m_renderer.Text(m_layout.cards[card].x+20,m_layout.cards[card].y+17,title,GUI_TEXT,14,true,m_layout.cards[card].w-40);
-               if(card==1)
-                  m_renderer.Text(m_layout.cards[card].x+20,m_layout.cards[card].y+36,m_state.indicators[m_active_indicator].type==GUI_INDICATOR_MA ? "Média Móvel" : "RSI",GUI_ACCENT,12);
+               GuiRect c=m_layout.cards[card];
+               m_renderer.Text(c.x+24,c.y+(m_layout.dense ? 14 : 20),"INDICADOR "+IntegerToString(card+1),GUI_TEXT,14,true,c.w-48);
               }
-            if(card==0)
-              {
-               m_fields[0].Draw(m_renderer,all);
-               m_fields[5].Draw(m_renderer,all);
-              }
-            else for(int j=1;j<5;j++) m_fields[m_active_indicator*5+j].Draw(m_renderer,all);
+            for(int j=0;j<5;j++) m_fields[card*5+j].Draw(m_renderer,all);
            }
          if(m_full || m_apply.dirty) m_apply.Draw(m_renderer);
          if(m_full || m_summary_dirty) DrawSummary();
@@ -361,7 +398,7 @@ public:
            {
             m_renderer.Fill(m_layout.status,GUI_BG);
             m_renderer.Text(m_layout.status.x,m_layout.status.y,m_message,m_error ? GUI_ERROR : GUI_MUTED,13,false,m_layout.status.w);
-            m_renderer.Text(m_layout.status.x,m_layout.status.y+22,"Canvas GUI / 01",GUI_MUTED,11);
+            m_renderer.Text(m_layout.status.x,m_layout.status.y+22,"Próxima etapa: Regras · em breve",GUI_MUTED,11);
            }
          if(m_open>=0) { m_renderer.SaveOverlay(m_fields[m_open].select.popup); m_fields[m_open].select.DrawOverlay(m_renderer); }
         }
