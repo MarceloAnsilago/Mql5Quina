@@ -6,6 +6,12 @@ A interface inicia em **Setup**, antes de **Indicadores** (etapa 2 de 7). O card
 
 Padrões: Meu setup, Magic 1, Forex, período do gráfico e Compra e venda. **Continuar** valida os campos e abre Indicadores; **< Setup** retorna preservando os valores dos dois passos. Tab/Shift+Tab percorrem os controles e Enter confirma/aciona. Valores inválidos impedem sair do campo. Recolher mantém a edição pendente.
 
+O card **Horários** contém início e fim das entradas em HH:MM, a opção Não encerrar/Encerrar no horário e o horário de encerramento. Os horários usam o servidor da corretora. O padrão é 00:00–23:59 com encerramento desativado; são valores de configuração, não uma indicação da sessão de negociação do ativo.
+
+Digite quatro números (por exemplo, 0930) e o campo insere os dois pontos. Também aceita 09:30. Horas fora de 00:00–23:59 são rejeitadas sem alterar o valor confirmado. Início e fim devem ser diferentes; um fim anterior ao início representa uma janela que atravessa a meia-noite. Quando habilitado, o encerramento deve ocorrer no fim das entradas ou depois dele, dentro do ciclo iniciado no horário de início. Essas relações são verificadas ao continuar, permitindo editar os campos em qualquer ordem.
+
+O campo de encerramento desativado é ignorado pelo Tab, mas seu valor é preservado ao reativar. Os horários também são preservados ao voltar de Indicadores ou recolher e são copiados para o histórico ao salvar. Ainda são apenas configuração; não foi acrescentada execução de ordens. Em telas largas, os três cards ficam lado a lado; abaixo de 960 pixels de largura, Horários fica abaixo dos demais.
+
 O cabeçalho exibe UNIVERSAL EA e o ativo/período reais do gráfico. O timeframe selecionado é uma preferência do setup e não muda o gráfico. Mercado e direção são configurações preparadas para a estratégia futura; este experimento continua sem enviar ordens. Salvar indicadores inclui a identificação e as preferências em cada cópia do histórico.
 
 `GuiSetupState.mqh` contém o estado e validação; `GuiSetupPage.mqh` reutiliza os controles Canvas para o formulário, teclado e dropdowns. O modo texto de `GuiTextField` usa [TranslateKey](https://www.mql5.com/en/docs/common/translatekey) para respeitar idioma e maiúsculas do teclado. O modo numérico existente é preservado.

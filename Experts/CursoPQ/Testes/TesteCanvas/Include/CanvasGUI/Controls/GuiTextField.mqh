@@ -8,9 +8,9 @@ private:
    int m_cursor;
    bool m_replace;
 public:
-   bool invalid,text_mode;
+   bool invalid,text_mode,time_mode;
    int max_length;
-   CGuiTextField() { invalid=false; text_mode=false; max_length=12; m_cursor=0; m_replace=false; }
+   CGuiTextField() { invalid=false; text_mode=false; time_mode=false; max_length=12; m_cursor=0; m_replace=false; }
    void SetValue(const string value) { m_value=value; dirty=true; }
    string Buffer() const { return m_buffer; }
    void Begin() { m_buffer=m_value; m_cursor=StringLen(m_buffer); m_replace=true; active=true; invalid=false; dirty=true; }
@@ -33,7 +33,13 @@ public:
       else
         {
          string ch="";
-         if(text_mode)
+         if(time_mode)
+           {
+            if(key>=48 && key<=57) ch=ShortToString((ushort)key);
+            else if(key>=96 && key<=105) ch=ShortToString((ushort)(key-48));
+            else if(TranslateKey(key)==':') ch=":";
+           }
+         else if(text_mode)
            {
             // Respect the terminal's input language, Shift and Caps Lock.
             short code=TranslateKey(key);
@@ -45,6 +51,8 @@ public:
          else if(key==189 || key==109) ch="-";
          if(ch=="") return false;
          if(m_replace) { m_buffer=""; m_cursor=0; m_replace=false; }
+         if(time_mode && ch!=":" && m_cursor==2 && StringLen(m_buffer)==2)
+           { m_buffer+=":"; m_cursor++; }
          if(StringLen(m_buffer)<max_length) { m_buffer=StringSubstr(m_buffer,0,m_cursor)+ch+StringSubstr(m_buffer,m_cursor); m_cursor++; }
         }
       bool changed=(before!=m_buffer || cursor!=m_cursor || replace!=m_replace);

@@ -7,7 +7,7 @@ enum ENUM_GUI_ICON
   {
    GUI_ICON_INDICATORS,GUI_ICON_RULES,GUI_ICON_MANAGEMENT,
    GUI_ICON_FILTERS,GUI_ICON_REVIEW,GUI_ICON_ACTIVATION,
-   GUI_ICON_PARAMETERS,GUI_ICON_INDICATOR
+   GUI_ICON_PARAMETERS,GUI_ICON_INDICATOR,GUI_ICON_CLOCK
   };
 void GuiDrawIcon(CCanvas &canvas,const ENUM_GUI_ICON icon,const int x,const int y,const int size,const uint ink)
   {
@@ -16,6 +16,8 @@ void GuiDrawIcon(CCanvas &canvas,const ENUM_GUI_ICON icon,const int x,const int 
      {
       case GUI_ICON_INDICATORS:
          path="2,7,6,3|6,3,14,3|14,3,18,7|18,7,2,7|3,11,17,11|4,15,16,15"; break;
+      case GUI_ICON_CLOCK:
+         path="7,2,13,2|13,2,18,7|18,7,18,13|18,13,13,18|13,18,7,18|7,18,2,13|2,13,2,7|2,7,7,2|10,5,10,10|10,10,14,12"; break;
       case GUI_ICON_RULES:
          path="3,3,3,17|3,6,16,6|3,14,16,14|12,3,16,6|16,6,12,9|12,11,16,14|16,14,12,17"; break;
       case GUI_ICON_MANAGEMENT:

@@ -6,6 +6,86 @@ int failures=0,checks=0;
 void Check(const bool condition,const string label)
   { checks++; if(!condition) { failures++; Print("FAIL: ",label); } }
 
+void CheckSchedule()
+  {
+   CGuiSetupState state,other;
+   state.Reset(PERIOD_M5);
+   other.Reset(PERIOD_H1);
+   string error;
+   Check(state.entry_start==0 && state.entry_end==1439 && state.close_time==1439 && !state.close_enabled,
+         "Horários iniciais cobrem o dia sem encerramento");
+   Check(state.Value(5)=="00:00" && state.Value(6)=="23:59" && state.Value(8)=="23:59",
+         "Horários exibem HH:MM com zeros iniciais");
+   Check(state.Choice(7)==0 && state.Value(7)=="Não encerrar" && state.Validate(error),
+         "Encerramento desligado por padrão");
+   Check(state.CommitText(5,"09:05",error) && state.entry_start==545 && state.Value(5)=="09:05",
+         "Editar início das entradas");
+   Check(state.CommitText(6,"17:00",error) && state.entry_end==1020,"Editar fim das entradas");
+   Check(state.CommitText(8,"17:30",error) && state.close_time==1050,"Editar horário de encerramento");
+   Check(state.Choose(7,1) && state.close_enabled && state.Choice(7)==1 && state.Value(7)=="Encerrar no horário",
+         "Habilitar encerramento");
+   Check(state.Validate(error) && error=="","Encerramento após fim das entradas é válido");
+   Check(other.entry_start==0 && other.entry_end==1439 && other.close_time==1439 && !other.close_enabled,
+         "Instâncias mantêm horários independentes");
+   Check(state.name=="Meu setup" && state.magic==1 && state.market==GUI_SETUP_FOREX &&
+         state.direction==GUI_SETUP_BUY_SELL && state.timeframe==PERIOD_M5,
+         "Horários preservam os demais campos do setup");
+
+   string invalid_times[]={"", "9:05", "09:5", "009:05", "24:00", "23:60", "99:99", "-1:00",
+                           "+1:00", "09.05", "09,05", "09 05", "09:0a", "aa:00", " 09:05", "09:05 ",
+                           "09:05:00", "\t9:05"};
+   int time_fields[]={5,6,8};
+   for(int field=0;field<ArraySize(time_fields);field++)
+      for(int i=0;i<ArraySize(invalid_times);i++)
+         Check(!state.CommitText(time_fields[field],invalid_times[i],error) && error!="" &&
+               state.entry_start==545 && state.entry_end==1020 && state.close_time==1050 && state.close_enabled,
+               "Horário inválido preserva estado no campo "+IntegerToString(time_fields[field])+": "+invalid_times[i]);
+   Check(!state.Choose(7,-1) && !state.Choose(7,2) && state.close_enabled,"Encerramento inválido preserva seleção");
+   Check(!state.CommitText(7,"0",error) && state.close_enabled,"Texto não altera modo de encerramento");
+
+   for(int field=0;field<ArraySize(time_fields);field++)
+     {
+      Check(state.CommitText(time_fields[field],"00:00",error) && state.Value(time_fields[field])=="00:00",
+            "Horário mínimo no campo "+IntegerToString(time_fields[field]));
+      Check(state.CommitText(time_fields[field],"23:59",error) && state.Value(time_fields[field])=="23:59",
+            "Horário máximo no campo "+IntegerToString(time_fields[field]));
+     }
+   Check(!state.Validate(error) && error!="","Início e fim iguais rejeitados na validação global");
+   Check(state.CommitText(5,"09:00",error) && state.CommitText(6,"17:00",error) &&
+         state.CommitText(8,"16:59",error),"Edição isolada permite corrigir horários em qualquer ordem");
+   Check(!state.Validate(error) && error!="","Rejeitar encerramento antes do fim das entradas");
+   Check(state.Choose(7,0) && state.Validate(error) && state.close_time==1019,
+         "Encerramento desligado ignora a relação e preserva o horário");
+   Check(state.Choose(7,1) && !state.Validate(error),"Reativação valida o horário preservado");
+   Check(state.CommitText(8,"17:00",error) && state.Validate(error),"Encerramento no fim das entradas é permitido");
+
+   Check(state.CommitText(5,"22:00",error) && state.CommitText(6,"02:00",error) &&
+         state.CommitText(8,"03:00",error) && state.Validate(error),"Janela e encerramento atravessam a meia-noite");
+   Check(state.CommitText(8,"23:00",error) && !state.Validate(error),"Rejeitar encerramento antes da meia-noite em janela noturna");
+   Check(state.CommitText(8,"01:59",error) && !state.Validate(error),"Rejeitar encerramento antes do fim da janela noturna");
+   Check(state.CommitText(8,"02:00",error) && state.Validate(error),"Encerramento no fim da janela noturna é permitido");
+   Check(state.CommitText(8,"21:59",error) && state.Validate(error),"Encerramento no fim do ciclo diário é permitido");
+   Check(state.CommitText(8,"22:00",error) && !state.Validate(error),"Encerramento no início do ciclo antecede o fim das entradas");
+   Check(state.CommitText(5,"09:00",error) && state.CommitText(6,"17:00",error) &&
+         state.CommitText(8,"00:30",error) && state.Validate(error),"Janela diurna permite encerramento após meia-noite");
+
+   state.Reset(PERIOD_M1); state.entry_start=-1;
+   Check(!state.Validate(error) && state.Value(5)=="","Rejeitar início negativo");
+   state.entry_start=1440;
+   Check(!state.Validate(error) && state.Value(5)=="","Rejeitar início acima de 23:59");
+   state.Reset(PERIOD_M1); state.entry_end=-1;
+   Check(!state.Validate(error) && state.Value(6)=="","Rejeitar fim negativo");
+   state.entry_end=1440;
+   Check(!state.Validate(error) && state.Value(6)=="","Rejeitar fim acima de 23:59");
+   state.Reset(PERIOD_M1); state.close_time=-1;
+   Check(!state.Validate(error) && state.Value(8)=="","Rejeitar encerramento negativo");
+   state.close_time=1440;
+   Check(!state.Validate(error) && state.Value(8)=="","Rejeitar encerramento acima de 23:59");
+   state.Reset(PERIOD_H4);
+   Check(state.Validate(error) && error=="" && state.entry_start==0 && state.entry_end==1439 &&
+         state.close_time==1439 && !state.close_enabled,"Reset restaura horários válidos");
+  }
+
 void OnStart()
   {
    CGuiSetupState state,other;
@@ -56,7 +136,7 @@ void OnStart()
    Check(!state.Choose(2,-1) && !state.Choose(2,2) && state.market==GUI_SETUP_B3,"Mercado inválido preserva seleção");
    Check(!state.Choose(4,-1) && !state.Choose(4,3) && state.direction==GUI_SETUP_BUY_SELL,"Direção inválida preserva seleção");
    Check(!state.Choose(0,0) && !state.Choose(5,0),"Rejeitar índices sem seleção");
-   Check(state.Choice(0)==-1 && state.Choice(5)==-1 && state.Value(5)=="","Índices inválidos não exibem valores");
+   Check(state.Choice(0)==-1 && state.Choice(5)==-1 && state.Value(9)=="","Índices inválidos não exibem valores");
 
    state.timeframe=PERIOD_CURRENT;
    Check(!state.Validate(error) && error!="" && state.Choice(3)==-1 && state.Value(3)=="","Rejeitar CURRENT não resolvido");
@@ -75,5 +155,6 @@ void OnStart()
    state.Reset(PERIOD_H4);
    Check(state.Validate(error) && error=="" && state.name=="Meu setup" && state.magic==1 && state.timeframe==PERIOD_H4,
          "Reset restaura configuração válida com timeframe do gráfico");
+   CheckSchedule();
    PrintFormat("[GuiSetupStateTests] %d verificações, %d falhas",checks,failures);
   }

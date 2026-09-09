@@ -117,6 +117,7 @@ public:
       Print("===================================="); Print("CONFIGURAÇÃO"); Print("====================================");
       Print("Setup: ",setup.name," | Magic: ",setup.magic);
       Print("Mercado: ",setup.Value(2)," | Timeframe: ",setup.Value(3)," | Direção: ",setup.Value(4));
+      Print("Entradas: ",setup.Value(5)," a ",setup.Value(6)," | Encerramento: ",setup.close_enabled ? setup.Value(8) : "Não encerrar"," | Horário do servidor");
       for(int i=0;i<4;i++)
         {
          IndicatorConfig c=indicators[i];
