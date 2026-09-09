@@ -3,6 +3,7 @@
 #include "GuiLayout.mqh"
 #include "Controls/GuiField.mqh"
 #include "Controls/GuiButton.mqh"
+#include "GuiSetupPage.mqh"
 class CGuiApp
   {
 private:
@@ -15,6 +16,20 @@ private:
    bool m_summary_dirty,m_summary_draft;
    int m_first_application;
    CGuiButton m_slots[4];
+   CGuiSetupPage m_setup;
+   CGuiButton m_back;
+   int m_step;
+   void ChangeStep(const int step)
+     {
+      if(step==m_step) return;
+      if(m_step==0) { if(!m_setup.Ready()) { m_dirty=true; return; } }
+      else if(!FinishEdit(true)) return;
+      CloseSelect(); m_setup.CloseSelect(); m_setup.ClearHover();
+      m_step=step; m_focus=-1;
+      m_state.setup=m_setup.state;
+      m_layout.Calculate(m_layout.width,m_layout.height,m_step==0);
+      Reflow();
+     }
    void DrawSummary()
      {
       GuiRect r=m_layout.summary;
@@ -50,54 +65,58 @@ private:
       edge.Set(w-2,4,2,h-4); m_renderer.Fill(edge,GUI_WINDOW_BORDER);
       edge.Set(0,h-2,w,2); m_renderer.Fill(edge,GUI_WINDOW_BORDER);
      }
-   // Wizard shell is presentation only. Future steps have no hit targets.
+   // Only Setup and Indicators are implemented; later steps are placeholders.
    void DrawShell()
      {
       GuiRect r; r.Set(0,0,m_layout.width,76); m_renderer.Fill(r,GUI_CARD);
       r.Set(0,75,m_layout.width,1); m_renderer.Fill(r,GUI_BORDER);
-      m_renderer.Text(28,27,"UNIVERSAL EA",GUI_TEXT,19,true);
+      int title_width=m_layout.width-(m_layout.width>=880 ? 400 : 216);
+      m_renderer.Icon(GUI_ICON_INDICATORS,28,20,GUI_ACCENT,24);
+      m_renderer.Text(64,17,"UNIVERSAL EA",GUI_TEXT,23,true,title_width-36);
+      string period=EnumToString(ChartPeriod(m_chart)); StringReplace(period,"PERIOD_","");
+      m_renderer.Text(28,49,"Desenvolvendo setup para o ativo "+ChartSymbol(m_chart)+" · "+period,GUI_MUTED,13,false,title_width);
       if(m_layout.width>=880)
         {
          r.Set(m_layout.width-356,25,8,8); m_renderer.Round(r,0xFF16A085,4);
          m_renderer.Text(m_layout.width-338,22,"CONFIGURAÇÃO",GUI_MUTED,12,true);
         }
-      string steps[6]={"Indicadores","Regras","Gestão","Filtros","Revisão","Ativação"};
+      string steps[7]={"Setup","Indicadores","Regras","Gestão","Filtros","Revisão","Ativação"};
       if(m_layout.sidebar>0)
         {
          r.Set(0,76,m_layout.sidebar,m_layout.height-76); m_renderer.Fill(r,GUI_CARD);
          r.Set(m_layout.sidebar-1,76,1,m_layout.height-76); m_renderer.Fill(r,GUI_BORDER);
          m_renderer.Text(24,108,"SUA ESTRATÉGIA",GUI_MUTED,11,true);
-         for(int i=0;i<6;i++)
+         for(int i=0;i<7;i++)
            {
-            int y=144+i*(m_layout.dense ? 48 : 58);
-            if(i==0) { r.Set(12,y-8,m_layout.sidebar-24,44); m_renderer.Round(r,GUI_HOVER); }
-            m_renderer.Icon((ENUM_GUI_ICON)i,24,y-2,i==0 ? GUI_ACCENT : GUI_MUTED,20);
-            m_renderer.Text(52,y,steps[i],i==0 ? GUI_ACCENT : GUI_MUTED,14,i==0);
+            int y=144+i*46;
+            if(i==m_step) { r.Set(12,y-8,m_layout.sidebar-24,40); m_renderer.Round(r,GUI_HOVER); }
+            m_renderer.Icon(i==0 ? GUI_ICON_PARAMETERS : (ENUM_GUI_ICON)(i-1),24,y-2,i==m_step ? GUI_ACCENT : GUI_MUTED,20);
+            m_renderer.Text(52,y,steps[i],i==m_step ? GUI_ACCENT : GUI_MUTED,14,i==m_step);
            }
-         m_renderer.Text(24,m_layout.dense ? 458 : 516,"Etapas 2–6 em breve",GUI_MUTED,11);
+         m_renderer.Text(24,474,"Etapas 3–7 em breve",GUI_MUTED,11);
         }
       else
         {
-         m_renderer.Text(m_layout.left,90,"Indicadores  /  Regras  /  Gestão  /  Filtros  /  Revisão  /  Ativação",GUI_MUTED,12,false,m_layout.content_width);
+         m_renderer.Text(m_layout.left,90,"Setup  /  Indicadores  /  Regras  /  Gestão  /  Filtros  /  Revisão  /  Ativação",GUI_MUTED,12,false,m_layout.content_width);
         }
       int y=m_layout.sidebar>0 ? 92 : (m_layout.dense ? 116 : 130);
-      m_renderer.Text(m_layout.left,y,"PASSO 1 DE 6",GUI_ACCENT,12,true);
+      m_renderer.Text(m_layout.left,y,"PASSO "+IntegerToString(m_step+1)+" DE 7",GUI_ACCENT,12,true);
       if(m_layout.dense)
         {
-         m_renderer.Text(m_layout.left,y+21,"Configure os indicadores da sua estratégia",GUI_TEXT,24,true,m_layout.content_width);
-         m_renderer.Text(m_layout.left,y+49,"Selecione um dos quatro indicadores e ajuste seus parâmetros.",GUI_MUTED,13,false,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+21,m_step==0 ? "Vamos começar pelo seu setup" : "Configure os indicadores da sua estratégia",GUI_TEXT,24,true,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+49,m_step==0 ? "Identifique a estratégia e defina como ela poderá operar." : "Selecione um dos quatro indicadores e ajuste seus parâmetros.",GUI_MUTED,13,false,m_layout.content_width);
         }
       else
         {
-         m_renderer.Text(m_layout.left,y+30,"Configure os indicadores",GUI_TEXT,28,true,m_layout.content_width);
-         m_renderer.Text(m_layout.left,y+65,"da sua estratégia",GUI_TEXT,28,true,m_layout.content_width);
-         m_renderer.Text(m_layout.left,y+100,"Selecione um dos quatro indicadores e ajuste seus parâmetros.",GUI_MUTED,14,false,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+30,m_step==0 ? "Defina a base" : "Configure os indicadores",GUI_TEXT,28,true,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+65,m_step==0 ? "do seu setup" : "da sua estratégia",GUI_TEXT,28,true,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+100,m_step==0 ? "Identifique a estratégia e defina como ela poderá operar." : "Selecione um dos quatro indicadores e ajuste seus parâmetros.",GUI_MUTED,14,false,m_layout.content_width);
         }
      }
    bool FieldVisible(const int index)
      { return index>=0 && index<20 && index/5==m_active_indicator && (index%5==0 || m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE); }
    bool FocusAvailable(const int id)
-     { return id>=0 && id<=10 && (id<4 || id>8 || FieldVisible(m_active_indicator*5+id-4)); }
+     { return id>=0 && id<=11 && (id<4 || id>8 || FieldVisible(m_active_indicator*5+id-4)); }
    void SetFocus(const int id)
      {
       m_focus=id;
@@ -110,6 +129,7 @@ private:
         }
       m_apply.focused=id==9; m_apply.dirty=true;
       m_toggle.focused=id==10; m_toggle.dirty=true;
+      m_back.focused=id==11; m_back.dirty=true;
       m_card_dirty[0]=true; m_card_dirty[1]=true; m_dirty=true;
      }
    void TabFocus(const bool backward)
@@ -121,10 +141,10 @@ private:
          if(option>=0) SelectOption(option); else CloseSelect();
         }
       int id=m_focus;
-      if(id<0) id=backward ? 0 : 10;
-      for(int i=0;i<11;i++)
+      if(id<0) id=backward ? 0 : 11;
+      for(int i=0;i<12;i++)
         {
-         id=(id+(backward ? 10 : 1))%11;
+         id=(id+(backward ? 11 : 1))%12;
          if(FocusAvailable(id)) break;
         }
       SetFocus(id);
@@ -142,6 +162,7 @@ private:
       else if(m_focus>=4 && m_focus<=8) r=m_fields[m_active_indicator*5+m_focus-4].select.bounds;
       else if(m_focus==9) r=m_apply.bounds;
       else if(m_focus==10) r=m_toggle.bounds;
+      else if(m_focus==11) r=m_back.bounds;
       else return;
       Click(r.x+r.w/2,r.y+r.h/2);
      }
@@ -167,7 +188,7 @@ private:
       int h=collapse ? 40 : (int)ChartGetInteger(m_chart,CHART_HEIGHT_IN_PIXELS,0);
       if(w<1 || h<1 || !m_renderer.Resize(w,h))
         { Print("[GUI] Falha ao alternar interface: ",GetLastError()); return; }
-      CloseSelect();
+      CloseSelect(); m_setup.CloseSelect(); m_setup.ClearHover();
       m_collapsed=collapse;
       ChartSetInteger(m_chart,CHART_SHOW,collapse ? true : false);
       ChartSetInteger(m_chart,CHART_MOUSE_SCROLL,collapse ? m_old_scroll : false);
@@ -179,7 +200,8 @@ private:
         { m_toggle.caption="EXIBIR INTERFACE"; m_toggle.SetBounds(0,0,176,40); }
       else
         {
-         m_layout.Calculate(w,h);
+         m_layout.Calculate(w,h,m_step==0);
+         m_setup.Place(m_layout);
          // Reposition without rebinding: preserve even the current edit buffer.
          for(int i=0;i<20;i++)
            {
@@ -206,6 +228,10 @@ private:
         }
       m_toggle.caption="Recolher"; m_toggle.secondary=true;
       m_toggle.SetBounds((int)MathMax(0,m_layout.width-172),m_layout.too_small ? 110 : 18,148,40);
+      m_back.caption="<  Setup"; m_back.secondary=true;
+      m_back.SetBounds(m_layout.left,m_layout.too_small ? 110 : m_layout.apply.y,128,44);
+      if(m_step==1)
+        m_layout.status.Set(m_layout.left+144,m_layout.apply.y,m_layout.content_width-368,48);
      }
    void Log(const string value) { if(m_debug) Print("[GUI] ",value); }
    void Status(const string value,const bool error=false)
@@ -240,6 +266,7 @@ private:
       for(int i=0;i<4;i++) BuildIndicator(i);
       GuiRect r=m_layout.apply; m_apply.SetBounds(r.x,r.y,r.w,r.h);
       PlaceToggle();
+      m_setup.Place(m_layout);
       SetFocus(FocusAvailable(m_focus) ? m_focus : -1);
       m_full=true; m_dirty=true;
      }
@@ -282,7 +309,14 @@ private:
      {
       if(m_toggle.ContainsPoint(x,y)) { SetFocus(10); ToggleInterface(); return; }
       if(m_collapsed) return;
+      if(m_step==1 && m_layout.too_small && m_back.ContainsPoint(x,y)) { ChangeStep(0); return; }
       if(m_layout.too_small) return;
+      if(m_step==0)
+        {
+         m_focus=-1; m_toggle.focused=false; m_toggle.dirty=true;
+         if(m_setup.Click(x,y)) ChangeStep(1);
+         m_dirty=true; return;
+        }
       if(m_apply.active) { m_apply.active=false; m_apply.dirty=true; m_dirty=true; }
       if(m_open>=0)
         {
@@ -291,6 +325,7 @@ private:
          bool same=m_fields[m_open].ContainsPoint(x,y);
          CloseSelect(); if(same) return;
         }
+      if(m_back.ContainsPoint(x,y)) { ChangeStep(0); return; }
       for(int slot=0;slot<4;slot++)
          if(m_slots[slot].ContainsPoint(x,y))
            {
@@ -316,6 +351,7 @@ private:
       else if(m_apply.ContainsPoint(x,y))
         {
          SetFocus(9);
+         m_state.setup=m_setup.state;
          if(!m_state.Apply()) { Status("Não foi possível guardar a aplicação.",true); return; }
          m_first_application=(int)MathMax(0,ArraySize(m_state.applications)-1);
          m_summary_dirty=true; m_summary_draft=false;
@@ -328,8 +364,11 @@ private:
       bool toggle_down=((StringToInteger(flags)&1)!=0 && m_toggle.hover);
       if(toggle_down!=m_toggle.active) { m_toggle.active=toggle_down; m_toggle.dirty=true; m_dirty=true; }
       if(m_collapsed) return;
+      if(m_step==1 && m_layout.too_small && m_back.SetHover(m_back.ContainsPoint(x,y))) m_dirty=true;
       if(m_layout.too_small) return;
+      if(m_step==0) { m_setup.Mouse(x,y,flags); if(m_setup.Dirty()) m_dirty=true; return; }
       bool overlay=(m_open>=0 && m_fields[m_open].select.popup.Contains(x,y));
+      if(m_back.SetHover(!overlay && m_back.ContainsPoint(x,y))) m_dirty=true;
       for(int slot=0;slot<4;slot++)
          if(m_slots[slot].SetHover(!overlay && m_slots[slot].ContainsPoint(x,y)))
            { m_card_dirty[0]=true; m_dirty=true; }
@@ -347,7 +386,27 @@ private:
      {
       if(m_collapsed)
         { if(key==13 || key==32) ToggleInterface(); return; }
-      if(m_layout.too_small) return;
+      if(m_layout.too_small) { if(m_step==1 && key==27) ChangeStep(0); return; }
+      if(m_step==0)
+        {
+         if(m_focus==10)
+           {
+            if(key==13 || key==32) ToggleInterface();
+            else if(key==9)
+              {
+               m_focus=-1; m_toggle.focused=false; m_toggle.dirty=true;
+               m_setup.EnterFocus((TerminalInfoInteger(TERMINAL_KEYSTATE_SHIFT)&0x8000)!=0);
+              }
+           }
+         else
+           {
+            int action=m_setup.Key(key);
+            if(action==1) ChangeStep(1);
+            else if(action==2) { m_focus=10; m_toggle.focused=true; m_toggle.dirty=true; }
+           }
+         if(m_setup.Dirty() || m_toggle.dirty) m_dirty=true;
+         return;
+        }
       if(key==9)
         {
          TabFocus((TerminalInfoInteger(TERMINAL_KEYSTATE_SHIFT)&0x8000)!=0);
@@ -389,11 +448,13 @@ private:
       if(w<1 || h<1 || (w==m_layout.width && h==m_layout.height)) return;
       if(!m_renderer.Resize(w,h)) { Print("[GUI] Falha ao redimensionar Canvas: ",GetLastError()); return; }
       CloseSelect();
+      m_setup.CloseSelect();
+      if(m_step==0 && !m_setup.Finish(true)) m_setup.Finish(false);
       if(!FinishEdit(true)) { FinishEdit(false); Status("Edição inválida descartada ao redimensionar.",true); }
-      m_layout.Calculate(w,h); Reflow(); Log(StringFormat("Canvas redimensionado: %dx%d",w,h));
+      m_layout.Calculate(w,h,m_step==0); Reflow(); Log(StringFormat("Canvas redimensionado: %dx%d",w,h));
      }
 public:
-   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_focus=-1; m_error=false; m_collapsed=false; m_active_indicator=0; m_summary_dirty=false; m_summary_draft=true; m_first_application=0; }
+   CGuiApp() { m_ready=false; m_saved=false; m_dirty=false; m_open=-1; m_edit=-1; m_focus=-1; m_error=false; m_collapsed=false; m_active_indicator=0; m_summary_dirty=false; m_summary_draft=true; m_first_application=0; m_step=0; }
    bool Create(const long chart,const bool debug)
      {
       m_chart=chart; m_debug=debug; m_state.Reset(); m_name="CanvasGUI_"+IntegerToString(chart)+"_"+IntegerToString((long)GetTickCount64());
@@ -406,7 +467,8 @@ public:
       if(!ChartSetInteger(chart,CHART_SHOW,false) || !ChartSetInteger(chart,CHART_EVENT_MOUSE_MOVE,true)
          || !ChartSetInteger(chart,CHART_MOUSE_SCROLL,false) || !ChartSetInteger(chart,CHART_KEYBOARD_CONTROL,false))
         { Print("[GUI] Falha ao configurar eventos do gráfico: ",GetLastError()); Destroy(); return false; }
-      m_layout.Calculate(w,h); m_apply.caption="Salvar indicadores";
+      m_setup.Create(ChartPeriod(chart)); m_state.setup=m_setup.state;
+      m_layout.Calculate(w,h,true); m_apply.caption="Salvar indicadores";
       m_ready=true; Reflow(); Status("Selecione o indicador que deseja configurar."); Render();
       Log("Inicializada"); Log(StringFormat("Tamanho: %dx%d",w,h)); return true;
      }
@@ -447,6 +509,9 @@ public:
         }
       if(!m_layout.too_small)
         {
+         if(m_step==0) { m_setup.Render(m_renderer,m_full); m_setup.DrawOverlay(m_renderer); }
+         else
+         {
          for(int card=0;card<2;card++)
            {
             bool all=m_full || m_card_dirty[card];
@@ -479,6 +544,7 @@ public:
             else if(m_state.indicators[m_active_indicator].type!=GUI_INDICATOR_NONE) for(int j=1;j<5;j++) m_fields[m_active_indicator*5+j].Draw(m_renderer,all);
            }
          if(m_full || m_apply.dirty) m_apply.Draw(m_renderer);
+         if(m_full || m_back.dirty) m_back.Draw(m_renderer);
          if(m_full || m_summary_dirty) DrawSummary();
          if(m_full || m_status_dirty)
            {
@@ -487,8 +553,10 @@ public:
             m_renderer.Text(m_layout.status.x,m_layout.status.y+22,"Próxima etapa: Regras · em breve",GUI_MUTED,11);
            }
          if(m_open>=0) { m_renderer.SaveOverlay(m_fields[m_open].select.popup); m_fields[m_open].select.DrawOverlay(m_renderer); }
+         }
         }
       if(m_full || m_toggle.dirty) m_toggle.Draw(m_renderer);
+      if(m_step==1 && m_layout.too_small) m_back.Draw(m_renderer);
       DrawWindowFrame();
       m_renderer.Present();
       m_full=false; m_card_dirty[0]=false; m_card_dirty[1]=false; m_status_dirty=false; m_summary_dirty=false; m_dirty=false;

@@ -108,6 +108,16 @@
       "path":"Include\\CanvasGUI\\GuiIcons.mqh",
       "compile":false,
       "relative_to_project":true
+    },
+    {
+      "path":"Include\\CanvasGUI\\GuiSetupPage.mqh",
+      "compile":false,
+      "relative_to_project":true
+    },
+    {
+      "path":"Include\\CanvasGUI\\GuiSetupState.mqh",
+      "compile":false,
+      "relative_to_project":true
     }
   ]
 }

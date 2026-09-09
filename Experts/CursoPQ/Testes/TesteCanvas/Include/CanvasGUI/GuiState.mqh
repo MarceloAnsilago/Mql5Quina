@@ -1,5 +1,6 @@
 #ifndef CANVAS_GUI_STATE_MQH
 #define CANVAS_GUI_STATE_MQH
+#include "GuiSetupState.mqh"
 enum ENUM_GUI_INDICATOR_TYPE { GUI_INDICATOR_NONE=-1, GUI_INDICATOR_MA, GUI_INDICATOR_RSI };
 enum ENUM_GUI_FIELD { GUI_TYPE, GUI_PERIOD, GUI_METHOD, GUI_PRICE, GUI_SHIFT, GUI_LOWER, GUI_UPPER };
 struct IndicatorConfig
@@ -15,6 +16,7 @@ struct IndicatorConfig
   };
 struct GuiAppliedConfiguration
   {
+   CGuiSetupState setup;
    IndicatorConfig indicators[4];
   };
 string GuiMethodName(const int index)
@@ -24,6 +26,7 @@ string GuiPriceName(const int index)
 class CGuiState
   {
 public:
+   CGuiSetupState setup;
    IndicatorConfig indicators[4];
    IndicatorConfig applied[4];
    GuiAppliedConfiguration applications[];
@@ -32,6 +35,7 @@ public:
      {
       int count=ArraySize(applications);
       if(ArrayResize(applications,count+1,32)!=count+1) return false;
+      applications[count].setup=setup;
       for(int i=0;i<4;i++)
         { applications[count].indicators[i]=indicators[i]; applied[i]=indicators[i]; }
       has_applied=true;
@@ -40,6 +44,7 @@ public:
    void Reset()
      {
       has_applied=false;
+      setup.Reset(PERIOD_M1);
       ArrayFree(applications);
       for(int i=0;i<4;i++)
         {
@@ -110,6 +115,8 @@ public:
    void PrintConfiguration()
      {
       Print("===================================="); Print("CONFIGURAÇÃO"); Print("====================================");
+      Print("Setup: ",setup.name," | Magic: ",setup.magic);
+      Print("Mercado: ",setup.Value(2)," | Timeframe: ",setup.Value(3)," | Direção: ",setup.Value(4));
       for(int i=0;i<4;i++)
         {
          IndicatorConfig c=indicators[i];

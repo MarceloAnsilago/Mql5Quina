@@ -8,8 +8,9 @@ private:
    int m_cursor;
    bool m_replace;
 public:
-   bool invalid;
-   CGuiTextField() { invalid=false; m_cursor=0; m_replace=false; }
+   bool invalid,text_mode;
+   int max_length;
+   CGuiTextField() { invalid=false; text_mode=false; max_length=12; m_cursor=0; m_replace=false; }
    void SetValue(const string value) { m_value=value; dirty=true; }
    string Buffer() const { return m_buffer; }
    void Begin() { m_buffer=m_value; m_cursor=StringLen(m_buffer); m_replace=true; active=true; invalid=false; dirty=true; }
@@ -32,13 +33,19 @@ public:
       else
         {
          string ch="";
-         if(key>=48 && key<=57) ch=ShortToString((ushort)key);
+         if(text_mode)
+           {
+            // Respect the terminal's input language, Shift and Caps Lock.
+            short code=TranslateKey(key);
+            if(code>=32) ch=ShortToString((ushort)code);
+           }
+         else if(key>=48 && key<=57) ch=ShortToString((ushort)key);
          else if(key>=96 && key<=105) ch=ShortToString((ushort)(key-48));
          else if(key==190 || key==188 || key==110) ch=".";
          else if(key==189 || key==109) ch="-";
          if(ch=="") return false;
          if(m_replace) { m_buffer=""; m_cursor=0; m_replace=false; }
-         if(StringLen(m_buffer)<12) { m_buffer=StringSubstr(m_buffer,0,m_cursor)+ch+StringSubstr(m_buffer,m_cursor); m_cursor++; }
+         if(StringLen(m_buffer)<max_length) { m_buffer=StringSubstr(m_buffer,0,m_cursor)+ch+StringSubstr(m_buffer,m_cursor); m_cursor++; }
         }
       bool changed=(before!=m_buffer || cursor!=m_cursor || replace!=m_replace);
       if(changed) { invalid=false; dirty=true; }
@@ -52,6 +59,8 @@ public:
          if(invalid) r.Box(bounds,GUI_CARD,GUI_ERROR);
          string display=m_value;
          if(active) display=StringSubstr(m_buffer,0,m_cursor)+"|"+StringSubstr(m_buffer,m_cursor);
+         // Long names keep the caret and the insertion position visible.
+         if(text_mode && active) display=r.EditViewport(display,m_cursor,bounds.w-32);
          if(active && m_replace) { GuiRect selection; selection.Set(bounds.x+8,bounds.y+7,bounds.w-16,bounds.h-14); r.Round(selection,GUI_HOVER,3); }
          r.Text(bounds.x+12,bounds.y+11,display,enabled ? GUI_TEXT : GUI_MUTED,15,false,bounds.w-24);
         }

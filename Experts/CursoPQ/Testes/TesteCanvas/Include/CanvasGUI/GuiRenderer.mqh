@@ -65,6 +65,13 @@ public:
         }
       m_canvas.TextOut(x,y,value,c);
      }
+   string EditViewport(string value,const int cursor,const int max_width)
+     {
+      m_canvas.FontSet("Segoe UI",15,FW_NORMAL);
+      int start=0;
+      while(start<cursor && m_canvas.TextWidth(StringSubstr(value,start,cursor-start+1))>max_width) start++;
+      return StringSubstr(value,start);
+     }
    void Icon(const ENUM_GUI_ICON icon,const int x,const int y,const uint ink=GUI_ACCENT,const int size=20)
      { GuiDrawIcon(m_canvas,icon,x,y,size,ink); }
    void FocusOutline(const GuiRect &r,const uint c)

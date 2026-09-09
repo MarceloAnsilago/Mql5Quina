@@ -75,5 +75,13 @@ void OnStart()
    state.Choose(3,GUI_TYPE,GUI_INDICATOR_MA+1);
    Check(state.indicators[3].maPeriod==77,"Reativar preserva parâmetros");
    Check(state.applications[0].indicators[3].type==GUI_INDICATOR_NONE,"Reativar não altera histórico");
+   state.setup.name="Setup B3"; state.setup.magic=1234;
+   state.setup.market=GUI_SETUP_B3; state.setup.timeframe=PERIOD_M5;
+   state.setup.direction=GUI_SETUP_BUY_ONLY;
+   Check(state.Apply(),"Salvar inclui configuração inicial");
+   int saved=ArraySize(state.applications)-1;
+   state.setup.name="Outro setup"; state.setup.magic=4321; state.setup.direction=GUI_SETUP_SELL_ONLY;
+   Check(state.applications[saved].setup.name=="Setup B3" && state.applications[saved].setup.magic==1234,"Histórico preserva identificação");
+   Check(state.applications[saved].setup.market==GUI_SETUP_B3 && state.applications[saved].setup.timeframe==PERIOD_M5 && state.applications[saved].setup.direction==GUI_SETUP_BUY_ONLY,"Histórico preserva mercado, timeframe e direção");
    PrintFormat("[GuiStateTests] %d verificações, %d falhas",checks,failures);
   }

@@ -7,7 +7,7 @@ public:
    int width,height,left,content_width,columns,sidebar;
    bool compact,too_small,dense;
    GuiRect cards[2],apply,status,summary;
-   void Calculate(const int w,const int h)
+   void Calculate(const int w,const int h,const bool setup=false)
      {
       width=w; height=h; compact=(w>=960); columns=2;
       dense=h<(compact ? (w>=1120 ? 794 : 832) : 1144);
@@ -35,6 +35,16 @@ public:
       status.Set(left,footer,content_width-224,48);
       // Include the footer below the summary in the viewport guard.
       too_small=(w<600 || h<status.y+status.h+8);
+      if(setup)
+        {
+         cards[0].h=compact ? 316 : 236;
+         cards[1].h=316;
+         if(!compact) cards[1].y=cards[0].y+cards[0].h+16;
+         int footer=cards[1].y+cards[1].h+20;
+         apply.Set(left+content_width-204,footer,204,44);
+         status.Set(left,footer,content_width-224,48);
+         too_small=(w<600 || h<status.y+status.h+8);
+        }
      }
    void SlotBounds(const int slot,GuiRect &r)
      {

@@ -15,10 +15,11 @@ public:
    void Open(const int screen_height)
      {
       active=true; hot=selected; dirty=true;
+      row_height=(int)MathMin(30,(screen_height-24)/(int)MathMax(1,ArraySize(m_options)));
       int h=ArraySize(m_options)*row_height+8;
       int y=bounds.y+bounds.h+4;
       if(y+h>screen_height-8) y=bounds.y-h-4;
-      popup.Set(bounds.x,(int)MathMax(4,y),bounds.w,h);
+      popup.Set(bounds.x,(int)MathMax(4,MathMin(y,screen_height-h-8)),bounds.w,h);
      }
    void Close() { active=false; hot=-1; dirty=true; }
    int OptionAt(const int x,const int y) const
@@ -27,7 +28,13 @@ public:
       int index=(y-popup.y-4)/row_height;
       return index<ArraySize(m_options) ? index : -1;
      }
-   void MoveHot(const int delta) { hot=(hot+delta+ArraySize(m_options))%ArraySize(m_options); }
+   void MoveHot(const int delta)
+     {
+      int count=ArraySize(m_options);
+      if(count<1) return;
+      if(hot<0) hot=delta<0 ? count-1 : 0;
+      else hot=(hot+delta+count)%count;
+     }
    virtual void Draw(CGuiRenderer &r)
      {
       if(visible)
