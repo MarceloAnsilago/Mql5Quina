@@ -78,14 +78,17 @@ void OnStart()
    state.setup.name="Setup B3"; state.setup.magic=1234;
    state.setup.market=GUI_SETUP_B3; state.setup.timeframe=PERIOD_M5;
    state.setup.direction=GUI_SETUP_BUY_ONLY;
+   state.setup.trade_mode=GUI_SETUP_SWING_TRADE;
    state.setup.entry_start=540; state.setup.entry_end=1020;
    state.setup.close_enabled=true; state.setup.close_time=1050;
    Check(state.Apply(),"Salvar inclui configuração inicial");
    int saved=ArraySize(state.applications)-1;
    state.setup.name="Outro setup"; state.setup.magic=4321; state.setup.direction=GUI_SETUP_SELL_ONLY;
    state.setup.entry_start=600; state.setup.entry_end=1080; state.setup.close_enabled=false;
+   state.setup.trade_mode=GUI_SETUP_DAY_TRADE;
    Check(state.applications[saved].setup.name=="Setup B3" && state.applications[saved].setup.magic==1234,"Histórico preserva identificação");
    Check(state.applications[saved].setup.market==GUI_SETUP_B3 && state.applications[saved].setup.timeframe==PERIOD_M5 && state.applications[saved].setup.direction==GUI_SETUP_BUY_ONLY,"Histórico preserva mercado, timeframe e direção");
    Check(state.applications[saved].setup.entry_start==540 && state.applications[saved].setup.entry_end==1020 && state.applications[saved].setup.close_enabled && state.applications[saved].setup.close_time==1050,"Histórico preserva os horários e encerramento");
+   Check(state.applications[saved].setup.trade_mode==GUI_SETUP_SWING_TRADE,"Histórico preserva modalidade após mudar setup");
    PrintFormat("[GuiStateTests] %d verificações, %d falhas",checks,failures);
   }

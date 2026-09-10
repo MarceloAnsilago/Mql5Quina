@@ -11,9 +11,9 @@
 class CGuiSetupPage
   {
 private:
-   CGuiLabel m_labels[9];
+   CGuiLabel m_labels[10];
    CGuiTextField m_text[2];
-   CGuiSelectBox m_select[7];
+   CGuiSelectBox m_select[8];
    CGuiButton m_continue;
    GuiRect m_cards[3],m_status;
    int m_open,m_edit,m_focus,m_height;
@@ -22,10 +22,20 @@ private:
    int TextIndex(const int id)
      { return id>=0 && id<2 ? id : -1; }
    int SelectIndex(const int id)
-     { return id>=2 && id<=8 ? id-2 : -1; }
+     { return id>=2 && id<=9 ? id-2 : -1; }
    int TextId(const int index) { return index; }
    int SelectId(const int index) { return index+2; }
-   bool FocusAvailable(const int id) { return id>=0 && id<=9 && (id!=8 || state.close_enabled); }
+   bool FocusAvailable(const int id) { return id>=0 && id<=10 && (id!=8 || state.close_enabled); }
+   int NextFocus(const bool backward)
+     {
+      // Follow the visible rows: market and modality share the first row.
+      int order[]={0,1,2,9,3,4,5,6,7,8,10};
+      int position=backward ? ArraySize(order) : -1;
+      for(int i=0;i<ArraySize(order);i++) if(order[i]==m_focus) { position=i; break; }
+      for(position+=backward ? -1 : 1;position>=0 && position<ArraySize(order);position+=backward ? -1 : 1)
+         if(FocusAvailable(order[position])) return order[position];
+      return -1;
+     }
    void UpdateCloseField()
      {
       m_select[6].enabled=state.close_enabled;
@@ -39,8 +49,8 @@ private:
      {
       m_focus=index;
       for(int i=0;i<2;i++) { m_text[i].focused=index==TextId(i); m_text[i].dirty=true; }
-      for(int i=0;i<7;i++) { m_select[i].focused=index==SelectId(i); m_select[i].dirty=true; }
-      m_continue.focused=index==9; m_continue.dirty=true; m_dirty=true;
+      for(int i=0;i<8;i++) { m_select[i].focused=index==SelectId(i); m_select[i].dirty=true; }
+      m_continue.focused=index==10; m_continue.dirty=true; m_dirty=true;
      }
    void SelectOption(const int option)
      {
@@ -73,6 +83,7 @@ public:
       m_labels[6].caption="Fim entradas";
       m_labels[7].caption="Encerrar posições";
       m_labels[8].caption="Horário de encerramento";
+      m_labels[9].caption="Modalidade";
       m_text[0].text_mode=true; m_text[0].max_length=48;
       m_text[1].max_length=10;
       for(int i=0;i<2;i++) m_text[i].SetValue(state.Value(TextId(i)));
@@ -83,7 +94,8 @@ public:
       m_select[4].SetOptions(GuiSetupTimeOptions());
       m_select[5].SetOptions("Não encerrar|Encerrar no horário");
       m_select[6].SetOptions(GuiSetupTimeOptions());
-      for(int i=0;i<7;i++) m_select[i].SetSelected(state.Choice(SelectId(i)));
+      m_select[7].SetOptions("Day trade|Swing trade");
+      for(int i=0;i<8;i++) m_select[i].SetSelected(state.Choice(SelectId(i)));
       UpdateCloseField();
       m_continue.caption="Continuar  >";
       Status("Defina a identificação e as preferências do setup.");
@@ -102,6 +114,14 @@ public:
          if(i<2) m_text[i].SetBounds(c.x+24,y,c.w-48,42);
          else m_select[i-2].SetBounds(c.x+24,y,c.w-48,42);
         }
+      GuiRect market=m_cards[1];
+      int market_width=(market.w-64)/2;
+      if(market_width<130) market_width=80;
+      int mode_x=market.x+24+market_width+16,mode_width=market.w-64-market_width;
+      m_labels[2].SetBounds(market.x+24,market.y+56,market_width,18);
+      m_select[0].SetBounds(market.x+24,market.y+78,market_width,42);
+      m_labels[9].SetBounds(mode_x,market.y+56,mode_width,18);
+      m_select[7].SetBounds(mode_x,market.y+78,mode_width,42);
       GuiRect c=m_cards[2];
       int half=(c.w-64)/2;
       for(int id=5;id<=8;id++)
@@ -125,7 +145,7 @@ public:
    void ClearHover()
      {
       for(int i=0;i<2;i++) m_text[i].SetHover(false);
-      for(int i=0;i<7;i++) m_select[i].SetHover(false);
+      for(int i=0;i<8;i++) m_select[i].SetHover(false);
       m_continue.SetHover(false); m_continue.active=false; m_dirty=true;
      }
    bool Finish(const bool save)
@@ -162,18 +182,18 @@ public:
         }
       int hit=-1;
       for(int i=0;i<2;i++) if(m_text[i].ContainsPoint(x,y)) hit=TextId(i);
-      for(int i=0;i<7;i++) if(m_select[i].ContainsPoint(x,y)) hit=SelectId(i);
+      for(int i=0;i<8;i++) if(m_select[i].ContainsPoint(x,y)) hit=SelectId(i);
       if(m_edit>=0 && hit==TextId(m_edit)) return false;
       if(!Finish(true)) return false;
       if(hit>=0) Begin(hit);
-      else if(m_continue.ContainsPoint(x,y)) { Focus(9); return Ready(); }
+      else if(m_continue.ContainsPoint(x,y)) { Focus(10); return Ready(); }
       return false;
      }
    void Mouse(const int x,const int y,const string flags)
      {
       bool overlay=m_open>=0 && m_select[m_open].popup.Contains(x,y);
       for(int i=0;i<2;i++) if(m_text[i].SetHover(!overlay && m_text[i].ContainsPoint(x,y))) m_dirty=true;
-      for(int i=0;i<7;i++) if(m_select[i].SetHover(!overlay && m_select[i].ContainsPoint(x,y))) m_dirty=true;
+      for(int i=0;i<8;i++) if(m_select[i].SetHover(!overlay && m_select[i].ContainsPoint(x,y))) m_dirty=true;
       if(m_continue.SetHover(!overlay && m_continue.ContainsPoint(x,y))) m_dirty=true;
       bool down=(StringToInteger(flags)&1)!=0 && m_continue.hover;
       if(down!=m_continue.active) { m_continue.active=down; m_dirty=true; }
@@ -191,9 +211,8 @@ public:
          if(!Finish(true)) return 0;
          if(m_open>=0) { int option=m_select[m_open].hot; if(option>=0) SelectOption(option); else CloseSelect(); }
          bool back=(TerminalInfoInteger(TERMINAL_KEYSTATE_SHIFT)&0x8000)!=0;
-         int next=m_focus<0 ? (back ? 9 : 0) : m_focus+(back ? -1 : 1);
-         while(next>=0 && next<=9 && !FocusAvailable(next)) next+=back ? -1 : 1;
-         if(next<0 || next>9) { Focus(-1); return 2; }
+         int next=NextFocus(back);
+         if(next<0) { Focus(-1); return 2; }
          Focus(next);
          int text=TextIndex(next);
          if(text>=0) { m_edit=text; m_text[text].Begin(); }
@@ -215,7 +234,7 @@ public:
         }
       if(m_focus<0) return 0;
       if(key==13 || key==32)
-        { if(m_focus==9) return Ready() ? 1 : 0; Begin(m_focus); return 0; }
+        { if(m_focus==10) return Ready() ? 1 : 0; Begin(m_focus); return 0; }
       if(TextIndex(m_focus)>=0 && FocusAvailable(m_focus))
         {
          // Ignore modifier keys until a printable/editing key arrives.
@@ -228,7 +247,7 @@ public:
    void EnterFocus(const bool last)
      {
       if(!Finish(true)) { Focus(TextId(m_edit)); return; }
-      Focus(last ? 9 : 0);
+      Focus(last ? 10 : 0);
       if(!last) { m_edit=0; m_text[0].Begin(); }
      }
    void Render(CGuiRenderer &r,const bool full)
@@ -240,7 +259,7 @@ public:
          r.Icon(card==0 ? GUI_ICON_REVIEW : (card==1 ? GUI_ICON_PARAMETERS : GUI_ICON_CLOCK),c.x+24,c.y+18,GUI_ACCENT,20);
          r.Text(c.x+52,c.y+20,card==0 ? "IDENTIFICAÇÃO" : (card==1 ? "MERCADO E OPERAÇÃO" : "HORÁRIOS"),GUI_TEXT,14,true,c.w-76);
         }
-      for(int id=0;id<9;id++)
+      for(int id=0;id<10;id++)
         {
          m_labels[id].Draw(r);
          int text=TextIndex(id),select=SelectIndex(id);

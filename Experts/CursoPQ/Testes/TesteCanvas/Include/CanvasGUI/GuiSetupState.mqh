@@ -3,6 +3,7 @@
 
 enum ENUM_GUI_SETUP_MARKET { GUI_SETUP_FOREX=0, GUI_SETUP_B3=1 };
 enum ENUM_GUI_SETUP_DIRECTION { GUI_SETUP_BUY_SELL=0, GUI_SETUP_BUY_ONLY=1, GUI_SETUP_SELL_ONLY=2 };
+enum ENUM_GUI_SETUP_TRADE_MODE { GUI_SETUP_DAY_TRADE=0, GUI_SETUP_SWING_TRADE=1 };
 
 string GuiSetupTimeframeOptions()
   { return "M1|M2|M3|M4|M5|M6|M10|M12|M15|M20|M30|H1|H2|H3|H4|H6|H8|H12|D1|W1|MN1"; }
@@ -65,6 +66,7 @@ public:
    int market;
    ENUM_TIMEFRAMES timeframe;
    int direction;
+   int trade_mode;
    int entry_start;
    int entry_end;
    bool close_enabled;
@@ -77,6 +79,7 @@ public:
       market=GUI_SETUP_FOREX;
       timeframe=chart_period;
       direction=GUI_SETUP_BUY_SELL;
+      trade_mode=GUI_SETUP_DAY_TRADE;
       entry_start=0;
       entry_end=1435;
       close_enabled=false;
@@ -129,6 +132,7 @@ public:
    // Select indexes: 2 = market, 3 = timeframe option, 4 = direction.
    // 5 = entry start, 6 = entry end, 8 = closing time (option * 5 minutes).
    // 7 = closing mode: 0 = disabled, 1 = close at the selected time.
+   // 9 = trade mode: 0 = day trade, 1 = swing trade.
    bool Choose(const int index,const int option)
      {
       if(index==2 && option>=GUI_SETUP_FOREX && option<=GUI_SETUP_B3)
@@ -152,6 +156,8 @@ public:
         }
       if(index==7 && option>=0 && option<=1)
         { close_enabled=(option==1); return true; }
+      if(index==9 && option>=GUI_SETUP_DAY_TRADE && option<=GUI_SETUP_SWING_TRADE)
+        { trade_mode=option; return true; }
       return false;
      }
 
@@ -166,6 +172,7 @@ public:
          return minutes>=0 && minutes<1440 && minutes%5==0 ? minutes/5 : -1;
         }
       if(index==7) return close_enabled ? 1 : 0;
+      if(index==9) return trade_mode>=GUI_SETUP_DAY_TRADE && trade_mode<=GUI_SETUP_SWING_TRADE ? trade_mode : -1;
       return -1;
      }
 
@@ -190,6 +197,7 @@ public:
       if(index==6) return GuiSetupTimeLabel(entry_end);
       if(index==7) return close_enabled ? "Encerrar no horário" : "Não encerrar";
       if(index==8) return GuiSetupTimeLabel(close_time);
+      if(index==9 && Choice(index)>=0) return trade_mode==GUI_SETUP_SWING_TRADE ? "Swing trade" : "Day trade";
       return "";
      }
 
@@ -201,6 +209,7 @@ public:
       if(Choice(2)<0) { error="Selecione o mercado: Forex ou B3."; return false; }
       if(Choice(3)<0) { error="Selecione um timeframe válido."; return false; }
       if(Choice(4)<0) { error="Selecione a direção permitida."; return false; }
+      if(Choice(9)<0) { error="Selecione a modalidade: Day trade ou Swing trade."; return false; }
       if(Choice(5)<0)
         { error="Início das entradas: selecione de 00:00 a 23:55, de 5 em 5 minutos."; return false; }
       if(Choice(6)<0)

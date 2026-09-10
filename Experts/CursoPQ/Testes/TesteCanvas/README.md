@@ -6,6 +6,8 @@ A interface inicia em **Setup**, antes de **Indicadores** (etapa 2 de 7). O card
 
 Padrões: Meu setup, Magic 1, Forex, período do gráfico e Compra e venda. **Continuar** valida os campos e abre Indicadores; **< Setup** retorna preservando os valores dos dois passos. Tab/Shift+Tab percorrem os controles e Enter confirma/aciona. Valores inválidos impedem sair do campo. Recolher mantém a edição pendente.
 
+O seletor **Modalidade**, ao lado de Mercado, oferece **Day trade** (padrão) e **Swing trade**. A escolha é preservada ao voltar de Indicadores e incluída no histórico e no log de salvamento. Trocar a modalidade mantém os horários, a direção e a opção de encerramento já escolhidos. O Tab segue a ordem visual: Mercado → Modalidade → Timeframe → Direção.
+
 O card **Horários** contém seletores de início, fim das entradas e encerramento, com intervalos de 5 minutos: 00:00, 00:05, …, 23:55. Os horários usam o servidor da corretora. O padrão é 00:00–23:55 com encerramento desativado; são valores de configuração, não uma indicação da sessão de negociação do ativo.
 
 Os seletores longos mostram até oito opções por vez. As faixas de navegação na própria lista mudam a página; setas, Page Up/Down e Home/End permitem percorrer as opções pelo teclado. A lista abre na seleção atual, inclusive 23:55. Enter confirma, Esc cancela e Tab confirma a opção destacada e avança. Início e fim devem ser diferentes; um fim anterior ao início representa uma janela que atravessa a meia-noite. Quando habilitado, o encerramento deve ocorrer no fim das entradas ou depois dele, dentro do ciclo iniciado no horário de início. Essas relações são verificadas ao continuar, permitindo escolher os campos em qualquer ordem.

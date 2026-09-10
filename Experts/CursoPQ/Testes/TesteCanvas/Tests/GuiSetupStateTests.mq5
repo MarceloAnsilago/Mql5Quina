@@ -143,6 +143,54 @@ void CheckTimeSelections()
          "Desligar encerramento preserva horário e ignora sua relação com a janela");
   }
 
+void CheckTradeMode()
+  {
+   CGuiSetupState state,other;
+   state.Reset(PERIOD_M5);
+   other.Reset(PERIOD_H1);
+   string error;
+   Check(state.trade_mode==GUI_SETUP_DAY_TRADE && state.Choice(9)==0 && state.Value(9)=="Day trade" &&
+         state.Validate(error),"Day trade é a modalidade inicial válida");
+   Check(state.CommitText(0,"Setup modalidade",error) && state.CommitText(1,"123456",error) &&
+         state.Choose(2,GUI_SETUP_B3) && state.Choose(4,GUI_SETUP_SELL_ONLY) &&
+         state.Choose(5,108) && state.Choose(6,204) && state.Choose(7,1) && state.Choose(8,210),
+         "Preparar campos independentes antes de alternar modalidade");
+   for(int mode=GUI_SETUP_SWING_TRADE;mode>=GUI_SETUP_DAY_TRADE;mode--)
+     {
+      Check(state.Choose(9,mode) && state.trade_mode==mode && state.Choice(9)==mode &&
+            state.Value(9)==(mode==GUI_SETUP_DAY_TRADE ? "Day trade" : "Swing trade") && state.Validate(error),
+            "Selecionar modalidade e exibir rótulo correspondente: "+IntegerToString(mode));
+      Check(state.name=="Setup modalidade" && state.magic==123456 && state.market==GUI_SETUP_B3 &&
+            state.timeframe==PERIOD_M5 && state.direction==GUI_SETUP_SELL_ONLY && state.entry_start==540 &&
+            state.entry_end==1020 && state.close_enabled && state.close_time==1050,
+            "Modalidade preserva identificação, mercado, direção, horários e encerramento");
+     }
+   Check(state.Choose(9,GUI_SETUP_SWING_TRADE) && other.trade_mode==GUI_SETUP_DAY_TRADE,
+         "Instâncias mantêm modalidades independentes");
+   Check(state.Choose(7,0) && state.trade_mode==GUI_SETUP_SWING_TRADE && state.close_time==1050 &&
+         state.Validate(error),"Desligar encerramento preserva modalidade e horário");
+   Check(state.Choose(9,GUI_SETUP_DAY_TRADE) && !state.close_enabled && state.entry_start==540 &&
+         state.entry_end==1020 && state.close_time==1050 && state.Validate(error),
+         "Day trade preserva encerramento desligado e horários existentes");
+   Check(state.Choose(9,GUI_SETUP_SWING_TRADE),"Restaurar Swing trade para verificar opções inválidas");
+   int invalid_modes[]={-1,2,2147483647};
+   for(int i=0;i<ArraySize(invalid_modes);i++)
+     {
+      Check(!state.Choose(9,invalid_modes[i]) && state.trade_mode==GUI_SETUP_SWING_TRADE &&
+            state.Choice(9)==1 && state.Value(9)=="Swing trade",
+            "Opção inválida preserva modalidade: "+IntegerToString(invalid_modes[i]));
+      other.trade_mode=invalid_modes[i];
+      Check(!other.Validate(error) && error!="" && other.Choice(9)==-1 && other.Value(9)=="",
+            "Validação global rejeita modalidade desconhecida: "+IntegerToString(invalid_modes[i]));
+     }
+   Check(!state.CommitText(9,"0",error) && error!="" && state.trade_mode==GUI_SETUP_SWING_TRADE,
+         "Texto não altera modalidade");
+   state.Reset(PERIOD_H4);
+   Check(state.trade_mode==GUI_SETUP_DAY_TRADE && state.Choice(9)==0 && state.Value(9)=="Day trade" &&
+         state.timeframe==PERIOD_H4 && state.Validate(error) && error=="",
+         "Reset restaura Day trade válido");
+  }
+
 void OnStart()
   {
    CGuiSetupState state,other;
@@ -192,8 +240,8 @@ void OnStart()
    Check(!state.Choose(3,-1) && !state.Choose(3,21) && state.timeframe==PERIOD_MN1,"Timeframe fora da lista preserva seleção");
    Check(!state.Choose(2,-1) && !state.Choose(2,2) && state.market==GUI_SETUP_B3,"Mercado inválido preserva seleção");
    Check(!state.Choose(4,-1) && !state.Choose(4,3) && state.direction==GUI_SETUP_BUY_SELL,"Direção inválida preserva seleção");
-   Check(!state.Choose(0,0) && !state.Choose(9,0),"Rejeitar índices sem seleção");
-   Check(state.Choice(0)==-1 && state.Choice(9)==-1 && state.Value(9)=="","Índices inválidos não exibem valores");
+   Check(!state.Choose(0,0) && !state.Choose(10,0),"Rejeitar índices sem seleção");
+   Check(state.Choice(0)==-1 && state.Choice(10)==-1 && state.Value(10)=="","Índices inválidos não exibem valores");
 
    state.timeframe=PERIOD_CURRENT;
    Check(!state.Validate(error) && error!="" && state.Choice(3)==-1 && state.Value(3)=="","Rejeitar CURRENT não resolvido");
@@ -214,5 +262,6 @@ void OnStart()
          "Reset restaura configuração válida com timeframe do gráfico");
    CheckSchedule();
    CheckTimeSelections();
+   CheckTradeMode();
    PrintFormat("[GuiSetupStateTests] %d verificações, %d falhas",checks,failures);
   }
