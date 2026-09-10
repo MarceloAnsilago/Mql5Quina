@@ -12,25 +12,25 @@ class CGuiSetupPage
   {
 private:
    CGuiLabel m_labels[9];
-   CGuiTextField m_text[5];
-   CGuiSelectBox m_select[4];
+   CGuiTextField m_text[2];
+   CGuiSelectBox m_select[7];
    CGuiButton m_continue;
    GuiRect m_cards[3],m_status;
    int m_open,m_edit,m_focus,m_height;
    bool m_dirty,m_error;
    string m_message;
    int TextIndex(const int id)
-     { if(id<0) return -1; if(id<2) return id; if(id==5 || id==6) return id-3; if(id==8) return 4; return -1; }
+     { return id>=0 && id<2 ? id : -1; }
    int SelectIndex(const int id)
-     { if(id>=2 && id<=4) return id-2; if(id==7) return 3; return -1; }
-   int TextId(const int index) { return index<2 ? index : (index<4 ? index+3 : 8); }
-   int SelectId(const int index) { return index<3 ? index+2 : 7; }
+     { return id>=2 && id<=8 ? id-2 : -1; }
+   int TextId(const int index) { return index; }
+   int SelectId(const int index) { return index+2; }
    bool FocusAvailable(const int id) { return id>=0 && id<=9 && (id!=8 || state.close_enabled); }
    void UpdateCloseField()
      {
-      m_text[4].enabled=state.close_enabled;
-      m_text[4].SetValue(state.close_enabled ? state.Value(8) : "--:--");
-      if(!state.close_enabled) m_text[4].SetHover(false);
+      m_select[6].enabled=state.close_enabled;
+      m_select[6].SetSelected(state.close_enabled ? state.Choice(8) : -1);
+      if(!state.close_enabled) m_select[6].SetHover(false);
       m_dirty=true;
      }
    void Status(const string message,const bool error=false)
@@ -38,8 +38,8 @@ private:
    void Focus(const int index)
      {
       m_focus=index;
-      for(int i=0;i<5;i++) { m_text[i].focused=index==TextId(i); m_text[i].dirty=true; }
-      for(int i=0;i<4;i++) { m_select[i].focused=index==SelectId(i); m_select[i].dirty=true; }
+      for(int i=0;i<2;i++) { m_text[i].focused=index==TextId(i); m_text[i].dirty=true; }
+      for(int i=0;i<7;i++) { m_select[i].focused=index==SelectId(i); m_select[i].dirty=true; }
       m_continue.focused=index==9; m_continue.dirty=true; m_dirty=true;
      }
    void SelectOption(const int option)
@@ -55,7 +55,8 @@ private:
       Focus(index);
       int text=TextIndex(index),select=SelectIndex(index);
       if(text>=0 && m_text[text].enabled) { m_edit=text; m_text[text].Begin(); Status("Tab avança; Enter confirma; Esc cancela."); }
-      else if(select>=0) { m_open=select; m_select[select].Open(m_height); }
+      else if(select>=0 && m_select[select].enabled)
+        { m_select[select].Open(m_height); m_open=m_select[select].active ? select : -1; }
      }
 public:
    CGuiSetupState state;
@@ -74,13 +75,15 @@ public:
       m_labels[8].caption="Horário de encerramento";
       m_text[0].text_mode=true; m_text[0].max_length=48;
       m_text[1].max_length=10;
-      for(int i=2;i<5;i++) { m_text[i].time_mode=true; m_text[i].max_length=5; }
-      for(int i=0;i<5;i++) m_text[i].SetValue(state.Value(TextId(i)));
+      for(int i=0;i<2;i++) m_text[i].SetValue(state.Value(TextId(i)));
       m_select[0].SetOptions("Forex|B3");
       m_select[1].SetOptions(GuiSetupTimeframeOptions());
       m_select[2].SetOptions("Compra e venda|Somente compra|Somente venda");
-      m_select[3].SetOptions("Não encerrar|Encerrar no horário");
-      for(int i=0;i<4;i++) m_select[i].SetSelected(state.Choice(SelectId(i)));
+      m_select[3].SetOptions(GuiSetupTimeOptions());
+      m_select[4].SetOptions(GuiSetupTimeOptions());
+      m_select[5].SetOptions("Não encerrar|Encerrar no horário");
+      m_select[6].SetOptions(GuiSetupTimeOptions());
+      for(int i=0;i<7;i++) m_select[i].SetSelected(state.Choice(SelectId(i)));
       UpdateCloseField();
       m_continue.caption="Continuar  >";
       Status("Defina a identificação e as preferências do setup.");
@@ -121,8 +124,8 @@ public:
      { if(m_open>=0) { m_select[m_open].Close(); m_open=-1; m_dirty=true; } }
    void ClearHover()
      {
-      for(int i=0;i<5;i++) m_text[i].SetHover(false);
-      for(int i=0;i<4;i++) m_select[i].SetHover(false);
+      for(int i=0;i<2;i++) m_text[i].SetHover(false);
+      for(int i=0;i<7;i++) m_select[i].SetHover(false);
       m_continue.SetHover(false); m_continue.active=false; m_dirty=true;
      }
    bool Finish(const bool save)
@@ -151,14 +154,15 @@ public:
      {
       if(m_open>=0)
         {
+         if(m_select[m_open].HandlePopupClick(x,y)) { m_dirty=true; return false; }
          int option=m_select[m_open].OptionAt(x,y);
          if(option>=0) { SelectOption(option); return false; }
          bool same=m_select[m_open].ContainsPoint(x,y);
          CloseSelect(); if(same) return false;
         }
       int hit=-1;
-      for(int i=0;i<5;i++) if(m_text[i].ContainsPoint(x,y)) hit=TextId(i);
-      for(int i=0;i<4;i++) if(m_select[i].ContainsPoint(x,y)) hit=SelectId(i);
+      for(int i=0;i<2;i++) if(m_text[i].ContainsPoint(x,y)) hit=TextId(i);
+      for(int i=0;i<7;i++) if(m_select[i].ContainsPoint(x,y)) hit=SelectId(i);
       if(m_edit>=0 && hit==TextId(m_edit)) return false;
       if(!Finish(true)) return false;
       if(hit>=0) Begin(hit);
@@ -168,8 +172,8 @@ public:
    void Mouse(const int x,const int y,const string flags)
      {
       bool overlay=m_open>=0 && m_select[m_open].popup.Contains(x,y);
-      for(int i=0;i<5;i++) if(m_text[i].SetHover(!overlay && m_text[i].ContainsPoint(x,y))) m_dirty=true;
-      for(int i=0;i<4;i++) if(m_select[i].SetHover(!overlay && m_select[i].ContainsPoint(x,y))) m_dirty=true;
+      for(int i=0;i<2;i++) if(m_text[i].SetHover(!overlay && m_text[i].ContainsPoint(x,y))) m_dirty=true;
+      for(int i=0;i<7;i++) if(m_select[i].SetHover(!overlay && m_select[i].ContainsPoint(x,y))) m_dirty=true;
       if(m_continue.SetHover(!overlay && m_continue.ContainsPoint(x,y))) m_dirty=true;
       bool down=(StringToInteger(flags)&1)!=0 && m_continue.hover;
       if(down!=m_continue.active) { m_continue.active=down; m_dirty=true; }
@@ -198,7 +202,7 @@ public:
       if(m_open>=0)
         {
          if(key==27) CloseSelect();
-         else if(key==38 || key==40) { m_select[m_open].MoveHot(key==38 ? -1 : 1); m_dirty=true; }
+         else if(m_select[m_open].PopupKey(key)) m_dirty=true;
          else if(key==13) SelectOption(m_select[m_open].hot);
          return 0;
         }

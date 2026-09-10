@@ -320,6 +320,7 @@ private:
       if(m_apply.active) { m_apply.active=false; m_apply.dirty=true; m_dirty=true; }
       if(m_open>=0)
         {
+         if(m_fields[m_open].select.HandlePopupClick(x,y)) { m_dirty=true; return; }
          int option=m_fields[m_open].select.OptionAt(x,y);
          if(option>=0) { SelectOption(option); return; }
          bool same=m_fields[m_open].ContainsPoint(x,y);
@@ -343,7 +344,7 @@ private:
          SetFocus(4+hit%5);
          if(m_fields[hit].field==GUI_TYPE) ActivateIndicator(m_fields[hit].card);
          if(m_fields[hit].is_select)
-           { m_open=hit; m_fields[hit].select.Open(m_layout.height); Log("Select aberto"); }
+           { m_fields[hit].select.Open(m_layout.height); m_open=m_fields[hit].select.active ? hit : -1; Log("Select aberto"); }
          else
            { m_edit=hit; m_fields[hit].edit.Begin(); Status("Digite o valor. Enter salva; Esc cancela."); }
          m_dirty=true;
@@ -415,7 +416,7 @@ private:
       if(m_open>=0)
         {
          if(key==27) CloseSelect();
-         else if(key==38 || key==40) { m_fields[m_open].select.MoveHot(key==38 ? -1 : 1); m_dirty=true; }
+         else if(m_fields[m_open].select.PopupKey(key)) m_dirty=true;
          else if(key==13) SelectOption(m_fields[m_open].select.hot);
          return;
         }

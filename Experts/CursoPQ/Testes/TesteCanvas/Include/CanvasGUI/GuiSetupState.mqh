@@ -30,6 +30,17 @@ string GuiSetupTimeLabel(const int minutes)
    return StringFormat("%02d:%02d",minutes/60,minutes%60);
   }
 
+string GuiSetupTimeOptions()
+  {
+   string options="";
+   for(int minutes=0;minutes<1440;minutes+=5)
+     {
+      if(minutes>0) options+="|";
+      options+=GuiSetupTimeLabel(minutes);
+     }
+   return options;
+  }
+
 bool GuiSetupParseTime(const string value,int &minutes)
   {
    if(StringLen(value)!=5 || StringGetCharacter(value,2)!=':') return false;
@@ -67,13 +78,14 @@ public:
       timeframe=chart_period;
       direction=GUI_SETUP_BUY_SELL;
       entry_start=0;
-      entry_end=1439;
+      entry_end=1435;
       close_enabled=false;
-      close_time=1439;
+      close_time=1435;
      }
 
    // Text indexes: 0 = optional name, 1 = positive magic number.
-   // 5 = entry start, 6 = entry end, 8 = closing time (server HH:MM).
+   // Also accepts 5 = entry start, 6 = entry end, 8 = closing time
+   // (server HH:MM, restricted to the same five-minute selection grid).
    // Never change the stored value until the complete input is valid.
    bool CommitText(const int index,string value,string &error)
      {
@@ -89,8 +101,8 @@ public:
       if(index==5 || index==6 || index==8)
         {
          int minutes=0;
-         if(!GuiSetupParseTime(value,minutes))
-           { error="Horário: use HH:MM, de 00:00 a 23:59."; return false; }
+         if(!GuiSetupParseTime(value,minutes) || minutes%5!=0)
+           { error="Horário: selecione de 00:00 a 23:55, de 5 em 5 minutos."; return false; }
          if(index==5) entry_start=minutes;
          else if(index==6) entry_end=minutes;
          else close_time=minutes;
@@ -115,6 +127,7 @@ public:
      }
 
    // Select indexes: 2 = market, 3 = timeframe option, 4 = direction.
+   // 5 = entry start, 6 = entry end, 8 = closing time (option * 5 minutes).
    // 7 = closing mode: 0 = disabled, 1 = close at the selected time.
    bool Choose(const int index,const int option)
      {
@@ -129,6 +142,14 @@ public:
         }
       if(index==4 && option>=GUI_SETUP_BUY_SELL && option<=GUI_SETUP_SELL_ONLY)
         { direction=option; return true; }
+      if(index==5 || index==6 || index==8)
+        {
+         if(option<0 || option>=288) return false;
+         if(index==5) entry_start=option*5;
+         else if(index==6) entry_end=option*5;
+         else close_time=option*5;
+         return true;
+        }
       if(index==7 && option>=0 && option<=1)
         { close_enabled=(option==1); return true; }
       return false;
@@ -139,6 +160,11 @@ public:
       if(index==2) return market>=GUI_SETUP_FOREX && market<=GUI_SETUP_B3 ? market : -1;
       if(index==3) return GuiSetupTimeframeIndex(timeframe);
       if(index==4) return direction>=GUI_SETUP_BUY_SELL && direction<=GUI_SETUP_SELL_ONLY ? direction : -1;
+      if(index==5 || index==6 || index==8)
+        {
+         int minutes=(index==5 ? entry_start : (index==6 ? entry_end : close_time));
+         return minutes>=0 && minutes<1440 && minutes%5==0 ? minutes/5 : -1;
+        }
       if(index==7) return close_enabled ? 1 : 0;
       return -1;
      }
@@ -175,12 +201,12 @@ public:
       if(Choice(2)<0) { error="Selecione o mercado: Forex ou B3."; return false; }
       if(Choice(3)<0) { error="Selecione um timeframe válido."; return false; }
       if(Choice(4)<0) { error="Selecione a direção permitida."; return false; }
-      if(entry_start<0 || entry_start>=1440)
-        { error="Início das entradas: use um horário de 00:00 a 23:59."; return false; }
-      if(entry_end<0 || entry_end>=1440)
-        { error="Fim das entradas: use um horário de 00:00 a 23:59."; return false; }
-      if(close_time<0 || close_time>=1440)
-        { error="Encerramento: use um horário de 00:00 a 23:59."; return false; }
+      if(Choice(5)<0)
+        { error="Início das entradas: selecione de 00:00 a 23:55, de 5 em 5 minutos."; return false; }
+      if(Choice(6)<0)
+        { error="Fim das entradas: selecione de 00:00 a 23:55, de 5 em 5 minutos."; return false; }
+      if(Choice(8)<0)
+        { error="Encerramento: selecione de 00:00 a 23:55, de 5 em 5 minutos."; return false; }
       if(entry_start==entry_end)
         { error="Início e fim das entradas devem ser diferentes."; return false; }
       // Measure both times from the entry start to support overnight windows.
