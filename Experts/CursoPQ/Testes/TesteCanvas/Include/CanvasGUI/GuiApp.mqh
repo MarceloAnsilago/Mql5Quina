@@ -468,7 +468,7 @@ public:
       if(!ChartSetInteger(chart,CHART_SHOW,false) || !ChartSetInteger(chart,CHART_EVENT_MOUSE_MOVE,true)
          || !ChartSetInteger(chart,CHART_MOUSE_SCROLL,false) || !ChartSetInteger(chart,CHART_KEYBOARD_CONTROL,false))
         { Print("[GUI] Falha ao configurar eventos do gráfico: ",GetLastError()); Destroy(); return false; }
-      m_setup.Create(ChartPeriod(chart)); m_state.setup=m_setup.state;
+      m_setup.Create(ChartPeriod(chart),ChartSymbol(chart)); m_state.setup=m_setup.state;
       m_layout.Calculate(w,h,true); m_apply.caption="Salvar indicadores";
       m_ready=true; Reflow(); Status("Selecione o indicador que deseja configurar."); Render();
       Log("Inicializada"); Log(StringFormat("Tamanho: %dx%d",w,h)); return true;

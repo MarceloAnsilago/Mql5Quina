@@ -6,7 +6,9 @@ A interface inicia em **Setup**, antes de **Indicadores** (etapa 2 de 7). O card
 
 Padrões: Meu setup, Magic 1, Forex, período do gráfico e Compra e venda. **Continuar** valida os campos e abre Indicadores; **< Setup** retorna preservando os valores dos dois passos. Tab/Shift+Tab percorrem os controles e Enter confirma/aciona. Valores inválidos impedem sair do campo. Recolher mantém a edição pendente.
 
-O seletor **Modalidade**, ao lado de Mercado, oferece **Day trade** (padrão) e **Swing trade**. A escolha é preservada ao voltar de Indicadores e incluída no histórico e no log de salvamento. Trocar a modalidade mantém os horários, a direção e a opção de encerramento já escolhidos. O Tab segue a ordem visual: Mercado → Modalidade → Timeframe → Direção.
+O seletor **Modalidade**, ao lado de Mercado, oferece **Day trade** (padrão) e **Swing trade**. A escolha é preservada ao voltar de Indicadores e incluída no histórico e no log de salvamento. Trocar a modalidade mantém os horários, a direção e a opção de encerramento já escolhidos. O Tab segue a ordem visual: Mercado → Modalidade → Timeframe → Lote → Direção.
+
+O campo **Lote**, ao lado de Timeframe, inicia no volume mínimo do ativo anexado. Aceita ponto ou vírgula decimal e valida mínimo, máximo e incremento informados pelo MT5 (`SYMBOL_VOLUME_MIN`, `SYMBOL_VOLUME_MAX`, `SYMBOL_VOLUME_STEP`). Valores fora desses limites ou do incremento são rejeitados sem arredondamento silencioso. As regras vêm do símbolo real do gráfico, inclusive para B3, e são consultadas novamente ao confirmar o lote ou continuar. O lote é preservado entre as páginas e copiado para o histórico e o log de salvamento. Essas preferências continuam sem executar ordens.
 
 O card **Horários** contém seletores de início, fim das entradas e encerramento, com intervalos de 5 minutos: 00:00, 00:05, …, 23:55. Os horários usam o servidor da corretora. O padrão é 00:00–23:55 com encerramento desativado; são valores de configuração, não uma indicação da sessão de negociação do ativo.
 

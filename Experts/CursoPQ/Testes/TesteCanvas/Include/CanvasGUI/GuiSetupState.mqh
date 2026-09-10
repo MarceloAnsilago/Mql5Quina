@@ -60,6 +60,29 @@ bool GuiSetupParseTime(const string value,int &minutes)
 
 class CGuiSetupState
   {
+private:
+   int VolumeDigits(const double value)
+     {
+      if(!MathIsValidNumber(value) || value<=0.0) return -1;
+      double scale=1.0;
+      for(int digits=0;digits<=8;digits++)
+        {
+         double scaled=value*scale;
+         double rounded=MathRound(scaled);
+         double tolerance=8.0*2.2204460492503131e-16*MathMax(1.0,MathAbs(scaled));
+         if(rounded>0.0 && MathAbs(scaled-rounded)<=tolerance) return digits;
+         scale*=10.0;
+        }
+      return -1;
+     }
+
+   bool VolumeLimitsValid()
+     {
+      return MathIsValidNumber(volume_min) && MathIsValidNumber(volume_max) &&
+             MathIsValidNumber(volume_step) && volume_min>0.0 && volume_max>=volume_min &&
+             volume_step>0.0 && VolumeDigits(volume_min)>=0 && VolumeDigits(volume_step)>=0;
+     }
+
 public:
    string name;
    long magic;
@@ -67,12 +90,17 @@ public:
    ENUM_TIMEFRAMES timeframe;
    int direction;
    int trade_mode;
+   double lot;
+   double volume_min;
+   double volume_max;
+   double volume_step;
    int entry_start;
    int entry_end;
    bool close_enabled;
    int close_time;
 
-   void Reset(const ENUM_TIMEFRAMES chart_period)
+   void Reset(const ENUM_TIMEFRAMES chart_period,const double min_volume=0.01,
+              const double max_volume=100.0,const double step_volume=0.01)
      {
       name="Meu setup";
       magic=1;
@@ -80,19 +108,79 @@ public:
       timeframe=chart_period;
       direction=GUI_SETUP_BUY_SELL;
       trade_mode=GUI_SETUP_DAY_TRADE;
+      volume_min=min_volume;
+      volume_max=max_volume;
+      volume_step=step_volume;
+      lot=0.0;
+      if(VolumeLimitsValid())
+        {
+         // Respect both the minimum and the symbol's absolute volume grid.
+         double units=volume_min/volume_step;
+         double candidate=NormalizeDouble(MathCeil(units-1.0e-8)*volume_step,LotDigits());
+         string error;
+         if(ValidateLot(candidate,error)) lot=candidate;
+        }
       entry_start=0;
       entry_end=1435;
       close_enabled=false;
       close_time=1435;
      }
 
-   // Text indexes: 0 = optional name, 1 = positive magic number.
+   int LotDigits()
+     {
+      return MathMax(0,MathMax(VolumeDigits(volume_min),VolumeDigits(volume_step)));
+     }
+
+   bool ValidateLot(const double candidate,string &error)
+     {
+      error="";
+      if(!VolumeLimitsValid())
+        { error="Lote: limites de volume do ativo indisponíveis."; return false; }
+      if(!MathIsValidNumber(candidate) || candidate<=0.0)
+        { error="Lote: informe um volume maior que zero."; return false; }
+      double tolerance=volume_step*1.0e-8;
+      if(candidate<volume_min-tolerance || candidate>volume_max+tolerance)
+        {
+         error="Lote: use de "+DoubleToString(volume_min,LotDigits())+" a "+
+               DoubleToString(volume_max,LotDigits())+".";
+         return false;
+        }
+      double units=candidate/volume_step;
+      double unit_tolerance=MathMin(1.0e-5,MathMax(1.0e-8,
+                            8.0*2.2204460492503131e-16*MathAbs(units)));
+      if(!MathIsValidNumber(units) || MathAbs(units-MathRound(units))>unit_tolerance)
+        {
+         error="Lote: use múltiplos de "+DoubleToString(volume_step,LotDigits())+".";
+         return false;
+        }
+      return true;
+     }
+
+   // Text indexes: 0 = optional name, 1 = positive magic number, 10 = lot.
    // Also accepts 5 = entry start, 6 = entry end, 8 = closing time
    // (server HH:MM, restricted to the same five-minute selection grid).
    // Never change the stored value until the complete input is valid.
    bool CommitText(const int index,string value,string &error)
      {
       error="";
+      if(index==10)
+        {
+         bool separator=false,has_digit=false;
+         for(int i=0;i<StringLen(value);i++)
+           {
+            ushort character=StringGetCharacter(value,i);
+            if(character>='0' && character<='9') { has_digit=true; continue; }
+            if((character=='.' || character==',') && !separator) { separator=true; continue; }
+            error="Lote: use números com ponto ou vírgula decimal.";
+            return false;
+           }
+         if(!has_digit) { error="Informe o lote."; return false; }
+         StringReplace(value,",",".");
+         double candidate=StringToDouble(value);
+         if(!ValidateLot(candidate,error)) return false;
+         lot=candidate;
+         return true;
+        }
       if(index==0)
         {
          if(StringLen(value)>48) { error="Nome: use no máximo 48 caracteres."; return false; }
@@ -198,6 +286,7 @@ public:
       if(index==7) return close_enabled ? "Encerrar no horário" : "Não encerrar";
       if(index==8) return GuiSetupTimeLabel(close_time);
       if(index==9 && Choice(index)>=0) return trade_mode==GUI_SETUP_SWING_TRADE ? "Swing trade" : "Day trade";
+      if(index==10) return MathIsValidNumber(lot) && lot>0.0 ? DoubleToString(lot,LotDigits()) : "";
       return "";
      }
 
@@ -210,6 +299,7 @@ public:
       if(Choice(3)<0) { error="Selecione um timeframe válido."; return false; }
       if(Choice(4)<0) { error="Selecione a direção permitida."; return false; }
       if(Choice(9)<0) { error="Selecione a modalidade: Day trade ou Swing trade."; return false; }
+      if(!ValidateLot(lot,error)) return false;
       if(Choice(5)<0)
         { error="Início das entradas: selecione de 00:00 a 23:55, de 5 em 5 minutos."; return false; }
       if(Choice(6)<0)
