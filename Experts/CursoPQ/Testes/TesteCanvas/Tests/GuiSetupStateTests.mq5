@@ -191,6 +191,94 @@ void CheckTradeMode()
          "Reset restaura Day trade válido");
   }
 
+void CheckLot()
+  {
+   CGuiSetupState state,other;
+   state.Reset(PERIOD_M5);
+   other.Reset(PERIOD_H1);
+   string error;
+   Check(state.lot==0.01 && state.volume_min==0.01 && state.volume_max==100.0 &&
+         state.volume_step==0.01 && state.LotDigits()==2 && state.Value(10)=="0.01" && state.Validate(error),
+         "Lote inicial respeita mínimo e precisão do volume");
+   Check(state.CommitText(0,"Setup lote",error) && state.CommitText(1,"123456",error) &&
+         state.Choose(2,GUI_SETUP_B3) && state.Choose(4,GUI_SETUP_SELL_ONLY) &&
+         state.Choose(9,GUI_SETUP_SWING_TRADE) && state.Choose(5,108) && state.Choose(6,204) &&
+         state.Choose(7,1) && state.Choose(8,210),"Preparar campos independentes antes de editar lote");
+   Check(state.CommitText(10,"0,25",error) && state.lot==0.25 && state.Value(10)=="0.25" && error=="",
+         "Lote aceita vírgula decimal e exibe valor com ponto");
+   Check(state.CommitText(10,"0.50",error) && state.lot==0.5 && state.Validate(error),
+         "Lote aceita ponto decimal");
+   Check(state.name=="Setup lote" && state.magic==123456 && state.market==GUI_SETUP_B3 &&
+         state.timeframe==PERIOD_M5 && state.direction==GUI_SETUP_SELL_ONLY &&
+         state.trade_mode==GUI_SETUP_SWING_TRADE && state.entry_start==540 && state.entry_end==1020 &&
+         state.close_enabled && state.close_time==1050 && state.volume_min==0.01 &&
+         state.volume_max==100.0 && state.volume_step==0.01 && other.lot==0.01,
+         "Editar lote preserva demais campos, limites do ativo e outras instâncias");
+
+   string invalid_lots[]={"", ".", ",", "0", "-1", "+1", "1e2", "NaN", "INF", "1 0", " 1", "1 ",
+                          "1a", "1..0", "1,0.0", "0.001", "0.015", "100.01"};
+   for(int i=0;i<ArraySize(invalid_lots);i++)
+      Check(!state.CommitText(10,invalid_lots[i],error) && error!="" && state.lot==0.5,
+            "Lote inválido mantém o valor anterior: "+invalid_lots[i]);
+   Check(state.CommitText(10,"0.01",error) && state.lot==0.01 &&
+         state.CommitText(10,"100",error) && state.lot==100.0 && state.Value(10)=="100.00",
+         "Lote aceita limites mínimo e máximo inclusive");
+   Check(!state.Choose(10,1) && state.Choice(10)==-1 && state.lot==100.0,
+         "Lote usa edição de texto sem alterar índices das seleções");
+   state.lot=0.015;
+   Check(!state.Validate(error) && error!="" && state.lot==0.015,
+         "Validação global rejeita lote fora do passo sem arredondar");
+
+   state.Reset(PERIOD_M1,1.0,100.0,1.0);
+   Check(state.lot==1.0 && state.LotDigits()==0 && state.Value(10)=="1" && state.Validate(error),
+         "Ativo com volumes inteiros inicia em um contrato");
+   Check(state.CommitText(10,"5",error) && state.Value(10)=="5" &&
+         !state.CommitText(10,"1.5",error) && state.lot==5.0,
+         "Volume inteiro rejeita fração sem modificar lote");
+   state.Reset(PERIOD_H1,0.25,10.0,0.25);
+   Check(state.lot==0.25 && state.LotDigits()==2 && state.Value(10)=="0.25" &&
+         state.CommitText(10,"1,50",error) && state.lot==1.5 &&
+         !state.CommitText(10,"0.30",error) && state.lot==1.5 && state.Validate(error),
+         "Passo de 0.25 aceita múltiplos exatos e rejeita outras frações");
+   state.Reset(PERIOD_M1,0.1,10.0,0.1);
+   Check(state.LotDigits()==1 && state.Value(10)=="0.1" && state.CommitText(10,"0.3",error) &&
+         state.Validate(error),"Passo decimal de 0.1 tolera representação binária do número");
+   state.Reset(PERIOD_M1,0.001,1.0,0.001);
+   Check(state.LotDigits()==3 && state.Value(10)=="0.001" && state.CommitText(10,"0,123",error) &&
+         state.Value(10)=="0.123" && state.Validate(error),"Volume com três casas preserva precisão");
+   state.Reset(PERIOD_M1,0.00000001,1.0,0.00000001);
+   Check(state.LotDigits()==8 && state.Value(10)=="0.00000001" &&
+         state.CommitText(10,"0.00000003",error) && state.Value(10)=="0.00000003" && state.Validate(error),
+         "Volume admite precisão de até oito casas decimais");
+   state.Reset(PERIOD_M1,0.03,1.0,0.02);
+   Check(state.lot==0.04 && state.Validate(error) && !state.CommitText(10,"0.03",error) && state.lot==0.04,
+         "Mínimo fora da grade inicia no primeiro múltiplo válido sem aceitar lote desalinhado");
+   state.Reset(PERIOD_M1,0.03,0.03,0.02);
+   Check(state.lot==0.0 && state.Value(10)=="" && !state.Validate(error),
+         "Intervalo sem volume válido mantém lote vazio");
+
+   double invalid_min[]={0.0,-1.0,1.0,0.01,0.01,0.01};
+   double invalid_max[]={100.0,100.0,0.5,100.0,100.0,100.0};
+   double invalid_step[]={0.01,0.01,0.01,0.0,-0.01,0.000000001};
+   for(int i=0;i<ArraySize(invalid_min);i++)
+     {
+      state.Reset(PERIOD_M5,invalid_min[i],invalid_max[i],invalid_step[i]);
+      Check(state.lot==0.0 && state.Value(10)=="" && !state.Validate(error) && error!="" &&
+            !state.CommitText(10,"1",error) && state.lot==0.0,
+            "Limites indisponíveis ou inválidos impedem salvar volume: "+IntegerToString(i));
+     }
+   double not_a_number=MathArcsin(2.0);
+   state.Reset(PERIOD_M1);
+   Check(!MathIsValidNumber(not_a_number) && !state.ValidateLot(not_a_number,error) &&
+         error!="" && state.lot==0.01,"Volume não finito é rejeitado sem alterar lote");
+   state.volume_max=not_a_number;
+   Check(!state.Validate(error) && error!="","Validação rejeita limite do ativo não finito");
+   state.Reset(PERIOD_H4);
+   Check(state.lot==0.01 && state.volume_min==0.01 && state.volume_max==100.0 &&
+         state.volume_step==0.01 && state.timeframe==PERIOD_H4 && state.Validate(error) && error=="",
+         "Reset restaura volume e limites padrão válidos");
+  }
+
 void OnStart()
   {
    CGuiSetupState state,other;
@@ -241,7 +329,7 @@ void OnStart()
    Check(!state.Choose(2,-1) && !state.Choose(2,2) && state.market==GUI_SETUP_B3,"Mercado inválido preserva seleção");
    Check(!state.Choose(4,-1) && !state.Choose(4,3) && state.direction==GUI_SETUP_BUY_SELL,"Direção inválida preserva seleção");
    Check(!state.Choose(0,0) && !state.Choose(10,0),"Rejeitar índices sem seleção");
-   Check(state.Choice(0)==-1 && state.Choice(10)==-1 && state.Value(10)=="","Índices inválidos não exibem valores");
+   Check(state.Choice(0)==-1 && state.Choice(10)==-1 && state.Value(11)=="","Índices inválidos não exibem valores");
 
    state.timeframe=PERIOD_CURRENT;
    Check(!state.Validate(error) && error!="" && state.Choice(3)==-1 && state.Value(3)=="","Rejeitar CURRENT não resolvido");
@@ -263,5 +351,6 @@ void OnStart()
    CheckSchedule();
    CheckTimeSelections();
    CheckTradeMode();
+   CheckLot();
    PrintFormat("[GuiSetupStateTests] %d verificações, %d falhas",checks,failures);
   }

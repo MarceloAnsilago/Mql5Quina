@@ -107,7 +107,8 @@ public:
       m_select[7].SetOptions("Day trade|Swing trade");
       for(int i=0;i<8;i++) m_select[i].SetSelected(state.Choice(SelectId(i)));
       UpdateCloseField();
-      m_continue.caption="Continuar  >";
+      m_continue.caption="Continuar";
+      m_continue.show_icon=true; m_continue.icon=GUI_ICON_ARROW_RIGHT; m_continue.icon_after=true;
       Status("Defina a identificação e as preferências do setup.");
       string error;
       if(!state.ValidateLot(state.lot,error)) Status(error,true);

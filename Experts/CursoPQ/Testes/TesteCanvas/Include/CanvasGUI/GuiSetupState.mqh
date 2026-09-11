@@ -128,7 +128,7 @@ public:
 
    int LotDigits()
      {
-      return MathMax(0,MathMax(VolumeDigits(volume_min),VolumeDigits(volume_step)));
+      return (int)MathMax(0,MathMax(VolumeDigits(volume_min),VolumeDigits(volume_step)));
      }
 
    bool ValidateLot(const double candidate,string &error)

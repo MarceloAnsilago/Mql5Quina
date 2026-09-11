@@ -5,7 +5,9 @@ class CGuiButton : public CGuiControl
   {
 public:
    bool secondary;
-   CGuiButton() { secondary=false; }
+   bool show_icon,icon_after;
+   ENUM_GUI_ICON icon;
+   CGuiButton() { secondary=false; show_icon=false; icon_after=false; icon=GUI_ICON_ARROW_RIGHT; }
    virtual void Draw(CGuiRenderer &r)
      {
       if(visible)
@@ -14,7 +16,16 @@ public:
          if(secondary) r.Box(bounds,hover && enabled ? GUI_HOVER : GUI_CARD,GUI_BORDER);
          else r.Round(bounds,bg);
          if(focused) r.FocusOutline(bounds,secondary ? GUI_ACCENT : GUI_CARD);
-         r.Text(bounds.x+24,bounds.y+(bounds.h-18)/2,caption,!enabled ? GUI_MUTED : (secondary ? GUI_TEXT : GUI_CARD),14,true,bounds.w-36);
+         uint ink=!enabled ? GUI_MUTED : (secondary ? GUI_TEXT : GUI_CARD);
+         int text_x=bounds.x+24;
+         int text_width=bounds.w-36;
+         if(show_icon)
+           {
+            r.Icon(icon,icon_after ? bounds.x+bounds.w-36 : bounds.x+20,bounds.y+(bounds.h-20)/2,ink,20);
+            if(!icon_after) text_x+=24;
+            text_width-=32;
+           }
+         r.Text(text_x,bounds.y+(bounds.h-18)/2,caption,ink,14,true,text_width);
         }
       dirty=false;
      }

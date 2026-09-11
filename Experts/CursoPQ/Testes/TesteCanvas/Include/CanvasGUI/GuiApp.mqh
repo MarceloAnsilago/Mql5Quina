@@ -228,7 +228,8 @@ private:
         }
       m_toggle.caption="Recolher"; m_toggle.secondary=true;
       m_toggle.SetBounds((int)MathMax(0,m_layout.width-172),m_layout.too_small ? 110 : 18,148,40);
-      m_back.caption="<  Setup"; m_back.secondary=true;
+      m_back.caption="Setup"; m_back.secondary=true;
+      m_back.show_icon=true; m_back.icon=GUI_ICON_ARROW_LEFT;
       m_back.SetBounds(m_layout.left,m_layout.too_small ? 110 : m_layout.apply.y,128,44);
       if(m_step==1)
         m_layout.status.Set(m_layout.left+144,m_layout.apply.y,m_layout.content_width-368,48);
