@@ -70,9 +70,9 @@ public:
         {
          int cw=(content_width-32)/3;
          int management_height=dense && cw>=300 ? 312 : 388;
-         cards[0].Set(left,top,cw,management_height);
-         cards[1].Set(left+cw+16,top,cw,management_height);
-         schedule.Set(left+2*(cw+16),top,content_width-2*(cw+16),management_height);
+         schedule.Set(left,top,cw,management_height);
+         cards[0].Set(left+cw+16,top,cw,management_height);
+         cards[1].Set(left+2*(cw+16),top,content_width-2*(cw+16),management_height);
          summary.Set(left,top+management_height+16,content_width,112);
          apply.Set(left+content_width-204,summary.y+summary.h+16,204,44);
          status.Set(left,apply.y+56,content_width,40);

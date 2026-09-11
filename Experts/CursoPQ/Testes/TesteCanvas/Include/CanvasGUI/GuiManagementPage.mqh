@@ -155,7 +155,7 @@ public:
          if(!Finish(true)) return 0;
          if(m_open>=0) { int option=m_select[m_open].hot; if(option>=0) SelectOption(option); else CloseSelect(); }
          bool back=(TerminalInfoInteger(TERMINAL_KEYSTATE_SHIFT)&0x8000)!=0;
-         int order[]={0,2,3,1,4,5,6,10,7,8,9,11,12};
+         int order[]={10,7,8,9,0,2,3,1,4,5,6,11,12};
          int position=back ? 13 : -1;
          for(int i=0;i<13;i++) if(order[i]==m_focus) { position=i; break; }
          int next=-1;
@@ -189,7 +189,7 @@ public:
         { Begin(m_focus); m_text[m_edit].Key(key); m_dirty=true; }
       return 0;
      }
-   void EnterFocus(const bool last) { Focus(last ? 12 : 0); }
+   void EnterFocus(const bool last) { Focus(last ? 12 : 10); }
    void Render(CGuiRenderer &r,const bool full)
      {
       if(!full && !m_dirty) return;
