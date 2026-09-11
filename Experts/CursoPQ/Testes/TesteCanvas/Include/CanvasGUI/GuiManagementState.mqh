@@ -4,34 +4,34 @@
 class CGuiManagementState
   {
 private:
-   double m_bank[2][5];
-   int m_unit[2];
+   double m_bank[2][8];
+   int m_unit[3];
 public:
-   int mode[2];
-   double values[5]; // BE trigger, BE offset, trailing trigger, distance, step.
+   int mode[3];
+   double values[8]; // BE trigger, BE offset, trailing trigger, distance, step.
    CGuiManagementState() { Reset(); }
    void Reset()
      { ArrayInitialize(mode,0); ArrayInitialize(values,0); ArrayInitialize(m_bank,0); ArrayInitialize(m_unit,0); }
-   int Owner(const int id) { return id<4 ? 0 : 1; }
+   int Owner(const int id) { return id<4 ? 0 : (id<7 ? 1 : 2); }
    string Unit(const int card) { return m_unit[card]==1 ? "%" : "pontos"; }
-   int Choice(const int id) { return id>=0 && id<2 ? mode[id] : -1; }
-   bool Enabled(const int id) { return id>=2 && id<=6 && mode[Owner(id)]!=0; }
+   int Choice(const int id) { return id>=0 && id<3 ? mode[id] : -1; }
+   bool Enabled(const int id) { return id>=2 && id<=9 && mode[Owner(id)]!=0; }
    bool Choose(const int id,const int option)
      {
-      if(id<0 || id>1 || option<0 || option>2) return false;
+      if(id<0 || id>2 || option<0 || option>2) return false;
       if(option>0)
         {
-         for(int i=0;i<5;i++) if(Owner(i+2)==id)
+         for(int i=0;i<8;i++) if(Owner(i+2)==id)
            { m_bank[m_unit[id]][i]=values[i]; values[i]=m_bank[option-1][i]; }
          m_unit[id]=option-1;
         }
       mode[id]=option; return true;
      }
-   string Value(const int id) { return id>=2 && id<=6 ? DoubleToString(values[id-2],2) : ""; }
+   string Value(const int id) { return id>=2 && id<=9 ? DoubleToString(values[id-2],2) : ""; }
    bool Commit(const int id,string text,string &error)
      {
       error="";
-      if(id<2 || id>6) { error="Campo inválido."; return false; }
+      if(id<2 || id>9) { error="Campo inválido."; return false; }
       StringReplace(text,",","."); int digits=0,dots=0;
       for(int i=0;i<StringLen(text);i++)
         {
@@ -51,21 +51,24 @@ public:
    bool Validate(string &error)
      {
       error="";
-      for(int i=0;i<2;i++) if(mode[i]<0 || mode[i]>2)
+      for(int i=0;i<3;i++) if(mode[i]<0 || mode[i]>2)
         { error="Selecione o modo de stop móvel."; return false; }
-      for(int i=0;i<5;i++) if(!MathIsValidNumber(values[i]) || values[i]<0 || values[i]>100000000)
+      for(int i=0;i<8;i++) if(!MathIsValidNumber(values[i]) || values[i]<0 || values[i]>100000000)
         { error="Confira os valores do stop móvel."; return false; }
       if(mode[0]!=0 && (values[0]<=0 || values[1]>=values[0]))
         { error="Breakeven: ativação > 0 e proteção menor que a ativação."; return false; }
       if(mode[1]!=0 && (values[2]<=0 || values[3]<=0 || values[4]<=0))
         { error="Trailing stop: ativação, distância e passo devem ser > 0."; return false; }
+      if(mode[2]!=0 && (values[5]<=0 || values[6]<=0 || values[7]<=0))
+        { error="Stop móvel: ativação, distância e passo devem ser > 0."; return false; }
       return true;
      }
    string Summary(const int card)
      {
       if(mode[card]==0) return "Desativado";
       if(card==0) return "Ativação: "+Value(2)+" · Proteção: "+Value(3)+" "+Unit(card);
-      return "Ativação: "+Value(4)+" · Distância: "+Value(5)+" · Passo: "+Value(6)+" "+Unit(card);
+      int first=card==1 ? 4 : 7;
+      return "Ativação: "+Value(first)+" · Distância: "+Value(first+1)+" · Passo: "+Value(first+2)+" "+Unit(card);
      }
   };
 #endif

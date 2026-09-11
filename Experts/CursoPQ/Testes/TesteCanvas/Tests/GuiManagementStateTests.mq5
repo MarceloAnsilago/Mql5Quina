@@ -44,15 +44,29 @@ void OnStart()
      }
    CGuiLayout screenshot; screenshot.Calculate(1792,733,false,false,true);
    Check(!screenshot.too_small && screenshot.status.y+screenshot.status.h+8<=733,"User viewport 1792x733 shows management");
-   for(int id=0;id<7;id++)
+   for(int id=0;id<11;id++)
      {
       GuiRect field; screenshot.ManagementFieldBounds(id,field);
-      GuiRect card=screenshot.cards[id<2 ? id : (id<4 ? 0 : 1)];
+      GuiRect card;
+      if(id>=7) card=screenshot.schedule;
+      else card=screenshot.cards[id<2 ? id : (id<4 ? 0 : 1)];
       Check(field.x>=card.x+24 && field.x+field.w<=card.x+card.w-24 && field.y+field.h<=card.y+card.h-28,"Compact field stays inside card above hint");
      }
    GuiRect distance,step; screenshot.ManagementFieldBounds(5,distance); screenshot.ManagementFieldBounds(6,step);
    Check(distance.y==step.y && distance.x+distance.w<step.x,"Distance and step share a row without overlap");
    screenshot.Calculate(1792,719,false,false,true);
    Check(screenshot.too_small,"Guard remains active below compact footer");
+   state.Reset();
+   Check(state.management.Choose(2,1) && !state.management.Validate(error),"Mobile stop requires positive parameters when enabled");
+   state.management.Commit(7,"200",error); state.management.Commit(8,"80",error); state.management.Commit(9,"5",error);
+   Check(state.management.Validate(error) && state.management.values[2]==0 && state.management.mode[1]==0,"Mobile stop independent from trailing stop");
+   Check(state.Apply(),"Save mobile stop");
+   state.management.Choose(2,2);
+   Check(state.management.values[5]==0 && state.management.values[6]==0 && state.management.values[7]==0,"Mobile percentages independent from points");
+   state.management.Commit(7,"2",error); state.management.Commit(8,"1",error); state.management.Commit(9,"0.25",error);
+   state.management.Choose(2,1);
+   Check(state.management.values[5]==200 && state.management.values[6]==80 && state.management.values[7]==5,"Mobile points restored");
+   state.management.Commit(7,"250",error);
+   Check(state.applications[0].management.mode[2]==1 && state.applications[0].management.values[5]==200,"History preserves mobile stop");
    PrintFormat("[GuiManagementStateTests] %d checks, %d failures",checks,failures);
   }

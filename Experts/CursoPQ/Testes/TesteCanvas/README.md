@@ -2,6 +2,8 @@
 
 ## Etapa 4 — Gestão / Stop móvel
 
+O terceiro card, **Stop móvel**, replica os campos do **Trailing stop**: modo Desativado/Pontos/Porcentagem, ativação, distância do preço e passo de ajuste. Seus valores e unidades são independentes e entram no resumo, histórico e log. Os três cards ficam lado a lado; em telas largas com pouca altura, distância e passo compartilham uma linha para manter a página dentro de 1792 × 733 px.
+
 **Continuar →** em Regras abre Gestão. Os cards **Breakeven** e **Trailing stop** oferecem os modos Desativado (padrão), Pontos e Porcentagem, independentes dos alvos fixos. Breakeven recebe ativação e proteção na entrada (zero representa o preço de entrada); trailing recebe ativação, distância do preço e passo de ajuste. Cada unidade preserva seus valores, sem conversão automática.
 
 Os campos desativados ficam indisponíveis e são ignorados pelo Tab. Ao ativar, o breakeven exige ativação positiva e proteção menor que a ativação; trailing exige os três valores positivos. Valores negativos, texto inválido e mais de duas casas decimais são rejeitados. **Salvar gestão** registra setup, indicadores, regras e gestão no histórico em memória e no log. **← Regras** retorna preservando os dados.

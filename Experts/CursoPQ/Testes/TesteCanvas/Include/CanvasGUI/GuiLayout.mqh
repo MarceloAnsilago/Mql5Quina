@@ -68,10 +68,11 @@ public:
         }
       if(management)
         {
-         int cw=(content_width-24)/2;
-         int management_height=dense && cw>=360 ? 312 : 388;
+         int cw=(content_width-32)/3;
+         int management_height=dense && cw>=300 ? 312 : 388;
          cards[0].Set(left,top,cw,management_height);
-         cards[1].Set(left+cw+24,top,content_width-cw-24,management_height);
+         cards[1].Set(left+cw+16,top,cw,management_height);
+         schedule.Set(left+2*(cw+16),top,content_width-2*(cw+16),management_height);
          summary.Set(left,top+management_height+16,content_width,112);
          apply.Set(left+content_width-204,summary.y+summary.h+16,204,44);
          status.Set(left,apply.y+56,content_width,40);
@@ -101,13 +102,13 @@ public:
      }
    void ManagementFieldBounds(const int id,GuiRect &r)
      {
-      int card=id<2 ? id : (id<4 ? 0 : 1);
-      GuiRect c=cards[card];
-      int row=id<2 ? 0 : (id<4 ? id-1 : id-3);
-      bool pair=c.h==312 && id>=5;
+      int card=id==10 ? 2 : (id<2 ? id : (id<4 ? 0 : (id<7 ? 1 : 2)));
+      GuiRect c; if(card==2) c=schedule; else c=cards[card];
+      int row=id<2 || id==10 ? 0 : (id<4 ? id-1 : (id<7 ? id-3 : id-6));
+      bool pair=c.h==312 && (id==5 || id==6 || id==8 || id==9);
       if(pair) row=2;
       int field_width=pair ? (c.w-64)/2 : c.w-48;
-      int x=c.x+24+(pair && id==6 ? field_width+16 : 0);
+      int x=c.x+24+(pair && (id==6 || id==9) ? field_width+16 : 0);
       r.Set(x,c.y+78+row*76,field_width,42);
      }
    void SlotBounds(const int slot,GuiRect &r)
