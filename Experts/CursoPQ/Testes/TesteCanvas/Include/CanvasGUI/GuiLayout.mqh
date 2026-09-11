@@ -69,9 +69,10 @@ public:
       if(management)
         {
          int cw=(content_width-24)/2;
-         cards[0].Set(left,top,cw,388);
-         cards[1].Set(left+cw+24,top,content_width-cw-24,388);
-         summary.Set(left,top+404,content_width,112);
+         int management_height=dense && cw>=360 ? 312 : 388;
+         cards[0].Set(left,top,cw,management_height);
+         cards[1].Set(left+cw+24,top,content_width-cw-24,management_height);
+         summary.Set(left,top+management_height+16,content_width,112);
          apply.Set(left+content_width-204,summary.y+summary.h+16,204,44);
          status.Set(left,apply.y+56,content_width,40);
          too_small=(w<600 || h<status.y+status.h+8);
@@ -97,6 +98,17 @@ public:
          status.Set(left,footer,content_width-224,48);
          too_small=(w<600 || h<status.y+status.h+8);
         }
+     }
+   void ManagementFieldBounds(const int id,GuiRect &r)
+     {
+      int card=id<2 ? id : (id<4 ? 0 : 1);
+      GuiRect c=cards[card];
+      int row=id<2 ? 0 : (id<4 ? id-1 : id-3);
+      bool pair=c.h==312 && id>=5;
+      if(pair) row=2;
+      int field_width=pair ? (c.w-64)/2 : c.w-48;
+      int x=c.x+24+(pair && id==6 ? field_width+16 : 0);
+      r.Set(x,c.y+78+row*76,field_width,42);
      }
    void SlotBounds(const int slot,GuiRect &r)
      {

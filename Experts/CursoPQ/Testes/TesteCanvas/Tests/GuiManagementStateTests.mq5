@@ -42,5 +42,17 @@ void OnStart()
       Check(!layout.too_small && layout.status.y+layout.status.h+8<=1000,"Management fits viewport");
       Check(layout.cards[1].h>=376 && layout.cards[0].x+layout.cards[0].w<layout.cards[1].x,"Fields and cards do not overlap");
      }
+   CGuiLayout screenshot; screenshot.Calculate(1792,733,false,false,true);
+   Check(!screenshot.too_small && screenshot.status.y+screenshot.status.h+8<=733,"User viewport 1792x733 shows management");
+   for(int id=0;id<7;id++)
+     {
+      GuiRect field; screenshot.ManagementFieldBounds(id,field);
+      GuiRect card=screenshot.cards[id<2 ? id : (id<4 ? 0 : 1)];
+      Check(field.x>=card.x+24 && field.x+field.w<=card.x+card.w-24 && field.y+field.h<=card.y+card.h-28,"Compact field stays inside card above hint");
+     }
+   GuiRect distance,step; screenshot.ManagementFieldBounds(5,distance); screenshot.ManagementFieldBounds(6,step);
+   Check(distance.y==step.y && distance.x+distance.w<step.x,"Distance and step share a row without overlap");
+   screenshot.Calculate(1792,719,false,false,true);
+   Check(screenshot.too_small,"Guard remains active below compact footer");
    PrintFormat("[GuiManagementStateTests] %d checks, %d failures",checks,failures);
   }

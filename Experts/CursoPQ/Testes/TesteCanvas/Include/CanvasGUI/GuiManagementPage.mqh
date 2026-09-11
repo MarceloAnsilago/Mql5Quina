@@ -71,12 +71,10 @@ public:
       m_height=layout.height; m_summary=layout.summary;
       for(int id=0;id<7;id++)
         {
-         int card=id<2 ? id : state.Owner(id);
-         int row=id<2 ? 0 : (id<4 ? id-1 : id-3);
-         GuiRect c=m_cards[card]; int y=c.y+78+row*76;
-         m_labels[id].SetBounds(c.x+24,y-22,c.w-48,18);
-         if(id<2) m_select[id].SetBounds(c.x+24,y,c.w-48,42);
-         else m_text[id-2].SetBounds(c.x+24,y,c.w-48,42);
+         GuiRect field; layout.ManagementFieldBounds(id,field);
+         m_labels[id].SetBounds(field.x,field.y-22,field.w,18);
+         if(id<2) m_select[id].SetBounds(field.x,field.y,field.w,field.h);
+         else m_text[id-2].SetBounds(field.x,field.y,field.w,field.h);
         }
       m_back.SetBounds(layout.left,layout.apply.y,172,44);
       m_save.SetBounds(layout.apply.x,layout.apply.y,layout.apply.w,44);
