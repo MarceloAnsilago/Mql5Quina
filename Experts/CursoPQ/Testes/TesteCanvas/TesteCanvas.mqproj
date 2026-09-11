@@ -118,6 +118,16 @@
       "path":"Include\\CanvasGUI\\GuiSetupState.mqh",
       "compile":false,
       "relative_to_project":true
+    },
+    {
+      "path":"Include\\CanvasGUI\\GuiRulesState.mqh",
+      "compile":false,
+      "relative_to_project":true
+    },
+    {
+      "path":"Include\\CanvasGUI\\GuiRulesPage.mqh",
+      "compile":false,
+      "relative_to_project":true
     }
   ]
 }

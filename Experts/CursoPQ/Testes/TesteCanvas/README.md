@@ -1,5 +1,15 @@
 # TesteCanvas
 
+## Etapa 3 — Regras
+
+Em Indicadores, **Continuar →** abre Regras. O card **Entrada** oferece tipo de ordem (**A mercado** ou **Pendente**) e filtro de candle (**Desativado**, **Candle de alta** ou **Candle de baixa**). O card **Stop loss e take profit** recebe valores em **pontos**, com até duas casas decimais; **0 desativa** a respectiva saída. Padrões: a mercado, filtro desativado e ambas as saídas desativadas.
+
+**← Indicadores** retorna preservando os valores. Nas telas com menu lateral, Setup, Indicadores e Regras também permitem navegação por clique. **Salvar regras** registra uma cópia conjunta do setup, indicadores e regras no histórico em memória e no log de Experts. A configuração não persiste após remover/reiniciar o EA. Esta etapa configura preferências; a execução de ordens e a avaliação do candle ainda não estão implementadas.
+
+Os controles seguem o estilo Canvas existente, com cards, ícones, resumo, foco, hover e setas nos botões de navegação. Tab/Shift+Tab percorrem os campos e botões; Enter confirma e Esc cancela uma edição. Valores inválidos impedem salvar ou sair da aba. Recolher e redimensionar preservam o buffer de edição de Regras.
+
+Validação manual: configurar uma ordem pendente, candle de baixa, stop de `150,25` e take de `300.50`; salvar, voltar a Indicadores e retornar a Regras; conferir valores e log. Testar também zero, negativos, campo vazio, três casas decimais, Tab/Shift+Tab, dropdowns, recolher e redimensionar. `Tests/GuiRulesStateTests.mq5` cobre validação, cópias do histórico e limites do layout; compilar não equivale a executar o script.
+
 ## Etapa 1 — Setup
 
 A interface inicia em **Setup**, antes de **Indicadores** (etapa 2 de 7). O card Identificação contém nome opcional (até 48 caracteres) e Magic Number obrigatório (1 a 2147483647). O card Mercado e operação contém Forex/B3, os 21 timeframes MT5 e direção permitida: Compra e venda, Somente compra ou Somente venda.
@@ -34,8 +44,8 @@ Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da
 
 1. Abra `TesteCanvas.mqproj` no MetaEditor e compile `TesteCanvas.mq5` com F7.
 2. No Navegador do MT5, atualize a lista de Experts e arraste `TesteCanvas` para um gráfico. Não é necessário habilitar negociação algorítmica.
-3. O card **Indicadores** oferece quatro botões numerados com seleção exclusiva. Escolha 1, 2, 3 ou 4 e selecione Não usar, Média Móvel ou RSI. O card **Parâmetros / Indicador N** mostra o nome e os quatro campos do indicador ativo. Os quatro indicadores iniciam em Não usar. Nessa opção, o painel de parâmetros e a coluna correspondente do resumo ficam vazios. Os parâmetros anteriores são preservados em memória ao desabilitar e reativar um indicador.
-4. Configure períodos diferentes nos quatro indicadores e alterne entre eles. Troque MA ↔ RSI: os valores de cada tipo permanecem independentes por indicador. Uma edição inválida bloqueia a troca até ser corrigida ou cancelada com Escape. As etapas 3–7 continuam apenas visuais.
+3. O card **Indicadores** oferece quatro botões numerados com seleção exclusiva. Escolha 1, 2, 3 ou 4 e selecione Não usar, Média Móvel ou RSI. O card **Parâmetros / Indicador N** mostra o nome e os quatro campos do indicador ativo. Os quatro indicadores iniciam em Não usar. Nessa opção, o painel de parâmetros e a coluna correspondente do resumo ficam vazios. Os parâmetros anteriores são preservados em memória ao desabilitar e reativar um indicador. **Continuar →** abre Regras.
+4. Configure períodos diferentes nos quatro indicadores e alterne entre eles. Troque MA ↔ RSI: os valores de cada tipo permanecem independentes por indicador. Uma edição inválida bloqueia a troca até ser corrigida ou cancelada com Escape. As etapas 4–7 continuam apenas visuais.
 5. Clique num campo e digite: o primeiro dígito substitui o valor anterior. Enter, Tab ou clique fora confirmam; Escape cancela. Setas, Home, End, Backspace e Delete permitem edição por posição. Ponto, vírgula e decimal do teclado numérico são aceitos.
 6. Teste período zero, texto vazio, níveis fora de 0–100 e inferior ≥ superior: o campo deve ficar vermelho, sem alterar o estado. Corrija ou use Escape para continuar.
 7. Selecione cada indicador e abra sua lista de preço no card de parâmetros. Verifique sobreposição, abertura para cima perto da borda, fechamento por clique externo e navegação por setas/Enter/Escape.
