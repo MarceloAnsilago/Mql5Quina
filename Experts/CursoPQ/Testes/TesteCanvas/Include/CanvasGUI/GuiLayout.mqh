@@ -48,6 +48,7 @@ public:
          if(compact)
            {
             int cw=(content_width-32)/3;
+            card_height=(int)MathMax(card_height,312);
             cards[0].Set(left,top,cw,card_height);
             schedule.Set(left+cw+16,top,cw,card_height);
             cards[1].Set(left+2*(cw+16),top,content_width-2*(cw+16),card_height);
@@ -57,7 +58,7 @@ public:
             int cw=(content_width-16)/2;
             cards[0].Set(left,top,cw,180);
             schedule.Set(left+cw+16,top,content_width-cw-16,180);
-            cards[1].Set(left,top+196,content_width,236);
+            cards[1].Set(left,top+196,content_width,312);
            }
          summary.Set(left,cards[1].y+cards[1].h+16,content_width,112);
          apply.Set(left+content_width-204,summary.y+summary.h+16,204,44);

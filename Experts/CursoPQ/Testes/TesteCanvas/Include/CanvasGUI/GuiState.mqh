@@ -125,7 +125,7 @@ public:
       Print("Modalidade: ",setup.Value(9)," | Lote: ",setup.Value(10));
       Print("Entradas: ",setup.Value(5)," a ",setup.Value(6)," | Encerramento: ",setup.close_enabled ? setup.Value(8) : "Não encerrar"," | Horário do servidor");
       Print("Ordem: ",rules.Value(0)," | Filtro de candle: ",rules.Value(1));
-      Print("Stop loss: ",rules.Value(2)," pontos | Take profit: ",rules.Value(3)," pontos | 0 = desativado");
+      Print("Stop loss: ",rules.Value(2)," ",rules.Unit()," | Take profit: ",rules.Value(3)," ",rules.Unit()," | 0 = desativado");
       for(int i=0;i<4;i++)
         {
          IndicatorConfig c=indicators[i];

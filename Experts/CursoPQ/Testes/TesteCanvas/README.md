@@ -2,6 +2,8 @@
 
 ## Etapa 3 — Regras
 
+O seletor **Unidade dos alvos**, no card Alvos, permite escolher **Pontos** (padrão) ou **Porcentagem** para stop loss e take profit. Os rótulos, o resumo e o log refletem a unidade selecionada. Cada unidade preserva seus próprios valores ao alternar, sem conversão automática; zero desativa a saída. Ambas aceitam até duas casas decimais. O histórico registra a unidade junto com os valores. O card Filtro de candle continua vazio.
+
 Em Indicadores, **Continuar →** abre Regras. O card **Ordem** oferece **A mercado** ou **Pendente**. O card **Filtro de candle** permanece vazio para desenvolvimento futuro. O card **Alvos** permite configurar stop loss e take profit em **pontos**, com até duas casas decimais; **0 desativa** a respectiva saída.
 
 **← Indicadores** retorna preservando os valores. Nas telas com menu lateral, Setup, Indicadores e Regras também permitem navegação por clique. **Salvar regras** registra uma cópia conjunta do setup, indicadores e regras no histórico em memória e no log de Experts. A configuração não persiste após remover/reiniciar o EA. Esta etapa configura preferências; a execução de ordens e a avaliação do candle ainda não estão implementadas.
