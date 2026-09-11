@@ -108,13 +108,13 @@ private:
       if(m_layout.dense)
         {
          m_renderer.Text(m_layout.left,y+21,m_step==0 ? "Vamos começar pelo seu setup" : (m_step==2 ? "Configure as regras da sua estratégia" : "Configure os indicadores da sua estratégia"),GUI_TEXT,24,true,m_layout.content_width);
-         m_renderer.Text(m_layout.left,y+49,m_step==0 ? "Identifique a estratégia e defina como ela poderá operar." : (m_step==2 ? "Escolha a ordem, o filtro de candle e os valores de saída." : "Selecione um dos quatro indicadores e ajuste seus parâmetros."),GUI_MUTED,13,false,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+49,m_step==0 ? "Identifique a estratégia e defina como ela poderá operar." : (m_step==2 ? "Escolha o tipo de ordem e os valores de saída." : "Selecione um dos quatro indicadores e ajuste seus parâmetros."),GUI_MUTED,13,false,m_layout.content_width);
         }
       else
         {
          m_renderer.Text(m_layout.left,y+30,m_step==0 ? "Defina a base" : (m_step==2 ? "Configure as regras" : "Configure os indicadores"),GUI_TEXT,28,true,m_layout.content_width);
          m_renderer.Text(m_layout.left,y+65,m_step==0 ? "do seu setup" : "da sua estratégia",GUI_TEXT,28,true,m_layout.content_width);
-         m_renderer.Text(m_layout.left,y+100,m_step==0 ? "Identifique a estratégia e defina como ela poderá operar." : (m_step==2 ? "Escolha a ordem, o filtro de candle e os valores de saída." : "Selecione um dos quatro indicadores e ajuste seus parâmetros."),GUI_MUTED,14,false,m_layout.content_width);
+         m_renderer.Text(m_layout.left,y+100,m_step==0 ? "Identifique a estratégia e defina como ela poderá operar." : (m_step==2 ? "Escolha o tipo de ordem e os valores de saída." : "Selecione um dos quatro indicadores e ajuste seus parâmetros."),GUI_MUTED,14,false,m_layout.content_width);
         }
      }
    bool FieldVisible(const int index)

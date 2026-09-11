@@ -2,13 +2,13 @@
 
 ## Etapa 3 — Regras
 
-Em Indicadores, **Continuar →** abre Regras. O card **Entrada** oferece tipo de ordem (**A mercado** ou **Pendente**) e filtro de candle (**Desativado**, **Candle de alta** ou **Candle de baixa**). O card **Stop loss e take profit** recebe valores em **pontos**, com até duas casas decimais; **0 desativa** a respectiva saída. Padrões: a mercado, filtro desativado e ambas as saídas desativadas.
+Em Indicadores, **Continuar →** abre Regras. O card **Ordem** oferece **A mercado** ou **Pendente**. O card **Filtro de candle** permanece vazio para desenvolvimento futuro. O card **Alvos** permite configurar stop loss e take profit em **pontos**, com até duas casas decimais; **0 desativa** a respectiva saída.
 
 **← Indicadores** retorna preservando os valores. Nas telas com menu lateral, Setup, Indicadores e Regras também permitem navegação por clique. **Salvar regras** registra uma cópia conjunta do setup, indicadores e regras no histórico em memória e no log de Experts. A configuração não persiste após remover/reiniciar o EA. Esta etapa configura preferências; a execução de ordens e a avaliação do candle ainda não estão implementadas.
 
 Os controles seguem o estilo Canvas existente, com cards, ícones, resumo, foco, hover e setas nos botões de navegação. Tab/Shift+Tab percorrem os campos e botões; Enter confirma e Esc cancela uma edição. Valores inválidos impedem salvar ou sair da aba. Recolher e redimensionar preservam o buffer de edição de Regras.
 
-Validação manual: configurar uma ordem pendente, candle de baixa, stop de `150,25` e take de `300.50`; salvar, voltar a Indicadores e retornar a Regras; conferir valores e log. Testar também zero, negativos, campo vazio, três casas decimais, Tab/Shift+Tab, dropdowns, recolher e redimensionar. `Tests/GuiRulesStateTests.mq5` cobre validação, cópias do histórico e limites do layout; compilar não equivale a executar o script.
+Validação manual: configurar uma ordem pendente, stop de `150,25` e take de `300.50`; salvar, voltar a Indicadores e retornar a Regras; conferir valores e log. Testar também zero, negativos, campo vazio, três casas decimais, Tab/Shift+Tab, dropdowns, recolher e redimensionar. `Tests/GuiRulesStateTests.mq5` cobre validação, cópias do histórico e limites do layout; compilar não equivale a executar o script.
 
 ## Etapa 1 — Setup
 

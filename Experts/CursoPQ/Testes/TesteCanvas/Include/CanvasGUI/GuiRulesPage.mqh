@@ -13,7 +13,7 @@ private:
    CGuiSelectBox m_select[2];
    CGuiTextField m_text[2];
    CGuiButton m_back,m_save;
-   GuiRect m_cards[2],m_status,m_summary;
+   GuiRect m_cards[3],m_status,m_summary;
    int m_open,m_edit,m_focus,m_height;
    bool m_dirty,m_error;
    string m_message;
@@ -27,6 +27,7 @@ private:
      }
    void Begin(const int id)
      {
+      if(id==1) return;
       Focus(id);
       if(id>=0 && id<2) { m_select[id].Open(m_height); m_open=m_select[id].active ? id : -1; }
       else if(id>=2 && id<4) { m_edit=id-2; m_text[m_edit].Begin(); }
@@ -47,7 +48,7 @@ public:
       m_labels[0].caption="Tipo de ordem"; m_labels[1].caption="Filtro de candle";
       m_labels[2].caption="Stop loss (pontos)"; m_labels[3].caption="Take profit (pontos)";
       m_select[0].SetOptions("A mercado|Pendente");
-      m_select[1].SetOptions("Desativado|Candle de alta|Candle de baixa");
+      m_select[1].visible=false; m_select[1].enabled=false; m_labels[1].visible=false;
       for(int i=0;i<2;i++) { m_select[i].SetSelected(state.Choice(i)); m_text[i].SetValue(state.Value(i+2)); }
       m_back.caption="Indicadores"; m_back.secondary=true; m_back.show_icon=true; m_back.icon=GUI_ICON_ARROW_LEFT;
       m_save.caption="Salvar regras";
@@ -56,6 +57,7 @@ public:
    void Place(CGuiLayout &layout)
      {
       for(int i=0;i<2;i++) m_cards[i]=layout.cards[i];
+      m_cards[2]=layout.schedule;
       m_height=layout.height; m_summary=layout.summary;
       for(int id=0;id<4;id++)
         {
@@ -139,6 +141,7 @@ public:
          if(m_open>=0) { int option=m_select[m_open].hot; if(option>=0) SelectOption(option); else CloseSelect(); }
          bool back=(TerminalInfoInteger(TERMINAL_KEYSTATE_SHIFT)&0x8000)!=0;
          int next=m_focus<0 ? (back ? 5 : 0) : m_focus+(back ? -1 : 1);
+         if(next==1) next+=back ? -1 : 1;
          if(next<0 || next>5) { Focus(-1); return 3; }
          Focus(next); if(next>=2 && next<4) Begin(next); return 0;
         }
@@ -171,18 +174,18 @@ public:
    void Render(CGuiRenderer &r,const bool full)
      {
       if(!full && !m_dirty) return;
-      for(int i=0;i<2;i++)
+      for(int i=0;i<3;i++)
         {
          GuiRect c=m_cards[i]; r.Box(c,GUI_CARD,GUI_BORDER);
-         r.Icon(i==0 ? GUI_ICON_RULES : GUI_ICON_MANAGEMENT,c.x+24,c.y+18,GUI_ACCENT,20);
-         r.Text(c.x+52,c.y+20,i==0 ? "ENTRADA" : "STOP LOSS E TAKE PROFIT",GUI_TEXT,14,true,c.w-76);
-         r.Text(c.x+24,c.y+c.h-28,i==0 ? "Defina a ordem e o candle permitido." : "Valores em pontos · 0 desativa a saída.",GUI_MUTED,12,false,c.w-48);
+         r.Icon(i==0 ? GUI_ICON_RULES : (i==1 ? GUI_ICON_MANAGEMENT : GUI_ICON_FILTERS),c.x+24,c.y+18,GUI_ACCENT,20);
+         r.Text(c.x+52,c.y+20,i==0 ? "ORDEM" : (i==1 ? "ALVOS" : "FILTRO DE CANDLE"),GUI_TEXT,14,true,c.w-76);
+         if(i<2) r.Text(c.x+24,c.y+c.h-28,i==0 ? "Defina o tipo de ordem." : "Valores em pontos · 0 desativa a saída.",GUI_MUTED,12,false,c.w-48);
         }
-      for(int id=0;id<4;id++) { m_labels[id].Draw(r); if(id<2) m_select[id].Draw(r); else m_text[id-2].Draw(r); }
+      for(int id=0;id<4;id++) { if(id==1) continue; m_labels[id].Draw(r); if(id<2) m_select[id].Draw(r); else m_text[id-2].Draw(r); }
       r.Box(m_summary,GUI_CARD,GUI_BORDER);
       r.Icon(GUI_ICON_REVIEW,m_summary.x+24,m_summary.y+16,GUI_ACCENT,20);
       r.Text(m_summary.x+52,m_summary.y+18,"RESUMO DAS REGRAS",GUI_TEXT,13,true,m_summary.w-76);
-      r.Text(m_summary.x+24,m_summary.y+50,"Ordem: "+state.Value(0)+"   ·   Filtro: "+state.Value(1),GUI_TEXT,13,false,m_summary.w-48);
+      r.Text(m_summary.x+24,m_summary.y+50,"Ordem: "+state.Value(0),GUI_TEXT,13,false,m_summary.w-48);
       r.Text(m_summary.x+24,m_summary.y+76,"Stop loss: "+(state.stop_loss==0 ? "Desativado" : state.Value(2)+" pontos")+"   ·   Take profit: "+(state.take_profit==0 ? "Desativado" : state.Value(3)+" pontos"),GUI_MUTED,13,false,m_summary.w-48);
       r.Fill(m_status,GUI_BG);
       r.Text(m_status.x,m_status.y,m_message,m_error ? GUI_ERROR : GUI_MUTED,13,false,m_status.w);
