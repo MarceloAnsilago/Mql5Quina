@@ -2,6 +2,7 @@
 #define CANVAS_GUI_STATE_MQH
 #include "GuiSetupState.mqh"
 #include "GuiRulesState.mqh"
+#include "GuiManagementState.mqh"
 enum ENUM_GUI_INDICATOR_TYPE { GUI_INDICATOR_NONE=-1, GUI_INDICATOR_MA, GUI_INDICATOR_RSI };
 enum ENUM_GUI_FIELD { GUI_TYPE, GUI_PERIOD, GUI_METHOD, GUI_PRICE, GUI_SHIFT, GUI_LOWER, GUI_UPPER };
 struct IndicatorConfig
@@ -19,6 +20,7 @@ struct GuiAppliedConfiguration
   {
    CGuiSetupState setup;
    CGuiRulesState rules;
+   CGuiManagementState management;
    IndicatorConfig indicators[4];
   };
 string GuiMethodName(const int index)
@@ -30,17 +32,19 @@ class CGuiState
 public:
    CGuiSetupState setup;
    CGuiRulesState rules;
+   CGuiManagementState management;
    IndicatorConfig indicators[4];
    IndicatorConfig applied[4];
    GuiAppliedConfiguration applications[];
    bool has_applied;
    bool Apply()
      {
-      string error; if(!rules.Validate(error)) return false;
+      string error; if(!rules.Validate(error) || !management.Validate(error)) return false;
       int count=ArraySize(applications);
       if(ArrayResize(applications,count+1,32)!=count+1) return false;
       applications[count].setup=setup;
       applications[count].rules=rules;
+      applications[count].management=management;
       for(int i=0;i<4;i++)
         { applications[count].indicators[i]=indicators[i]; applied[i]=indicators[i]; }
       has_applied=true;
@@ -49,7 +53,7 @@ public:
    void Reset()
      {
       has_applied=false;
-      setup.Reset(PERIOD_M1); rules.Reset();
+      setup.Reset(PERIOD_M1); rules.Reset(); management.Reset();
       ArrayFree(applications);
       for(int i=0;i<4;i++)
         {
@@ -124,6 +128,8 @@ public:
       Print("Mercado: ",setup.Value(2)," | Timeframe: ",setup.Value(3)," | Direção: ",setup.Value(4));
       Print("Modalidade: ",setup.Value(9)," | Lote: ",setup.Value(10));
       Print("Entradas: ",setup.Value(5)," a ",setup.Value(6)," | Encerramento: ",setup.close_enabled ? setup.Value(8) : "Não encerrar"," | Horário do servidor");
+      Print("Breakeven: ",management.Summary(0));
+      Print("Trailing stop: ",management.Summary(1));
       Print("Ordem: ",rules.Value(0)," | Filtro de candle: ",rules.Value(1));
       Print("Stop loss: ",rules.Value(2)," ",rules.Unit()," | Take profit: ",rules.Value(3)," ",rules.Unit()," | 0 = desativado");
       for(int i=0;i<4;i++)

@@ -7,10 +7,11 @@ public:
    int width,height,left,content_width,columns,sidebar;
    bool compact,too_small,dense;
    GuiRect cards[2],apply,status,summary,schedule;
-   void Calculate(const int w,const int h,const bool setup=false,const bool rules=false)
+   void Calculate(const int w,const int h,const bool setup=false,const bool rules=false,const bool management=false)
      {
       width=w; height=h; compact=(w>=960); columns=2;
       dense=h<(compact ? (w>=1120 ? 794 : 832) : 1144)+(!setup && !rules ? 40 : 0);
+      if(management) dense=h<(w>=1120 ? 858 : 896);
       sidebar=w>=1120 ? 196 : 0;
       content_width=(int)MathMin(w-sidebar-48,1120);
       left=sidebar+(w-sidebar-content_width)/2;
@@ -61,6 +62,16 @@ public:
             cards[1].Set(left,top+196,content_width,312);
            }
          summary.Set(left,cards[1].y+cards[1].h+16,content_width,112);
+         apply.Set(left+content_width-204,summary.y+summary.h+16,204,44);
+         status.Set(left,apply.y+56,content_width,40);
+         too_small=(w<600 || h<status.y+status.h+8);
+        }
+      if(management)
+        {
+         int cw=(content_width-24)/2;
+         cards[0].Set(left,top,cw,388);
+         cards[1].Set(left+cw+24,top,content_width-cw-24,388);
+         summary.Set(left,top+404,content_width,112);
          apply.Set(left+content_width-204,summary.y+summary.h+16,204,44);
          status.Set(left,apply.y+56,content_width,40);
          too_small=(w<600 || h<status.y+status.h+8);

@@ -1,5 +1,13 @@
 # TesteCanvas
 
+## Etapa 4 — Gestão / Stop móvel
+
+**Continuar →** em Regras abre Gestão. Os cards **Breakeven** e **Trailing stop** oferecem os modos Desativado (padrão), Pontos e Porcentagem, independentes dos alvos fixos. Breakeven recebe ativação e proteção na entrada (zero representa o preço de entrada); trailing recebe ativação, distância do preço e passo de ajuste. Cada unidade preserva seus valores, sem conversão automática.
+
+Os campos desativados ficam indisponíveis e são ignorados pelo Tab. Ao ativar, o breakeven exige ativação positiva e proteção menor que a ativação; trailing exige os três valores positivos. Valores negativos, texto inválido e mais de duas casas decimais são rejeitados. **Salvar gestão** registra setup, indicadores, regras e gestão no histórico em memória e no log. **← Regras** retorna preservando os dados.
+
+Esta etapa configura preferências; ainda não modifica stops de posições. A base de cálculo percentual será definida na implementação da execução. O card Filtro de candle continua vazio. `Tests/GuiManagementStateTests.mq5` cobre validação, troca de unidades, independência do histórico e limites do layout; compilar não equivale a executar o script.
+
 ## Etapa 3 — Regras
 
 O seletor **Unidade dos alvos**, no card Alvos, permite escolher **Pontos** (padrão) ou **Porcentagem** para stop loss e take profit. Os rótulos, o resumo e o log refletem a unidade selecionada. Cada unidade preserva seus próprios valores ao alternar, sem conversão automática; zero desativa a saída. Ambas aceitam até duas casas decimais. O histórico registra a unidade junto com os valores. O card Filtro de candle continua vazio.
@@ -47,7 +55,7 @@ Experimento de interface MQL5 com `CCanvas`, sem dependências externas além da
 1. Abra `TesteCanvas.mqproj` no MetaEditor e compile `TesteCanvas.mq5` com F7.
 2. No Navegador do MT5, atualize a lista de Experts e arraste `TesteCanvas` para um gráfico. Não é necessário habilitar negociação algorítmica.
 3. O card **Indicadores** oferece quatro botões numerados com seleção exclusiva. Escolha 1, 2, 3 ou 4 e selecione Não usar, Média Móvel ou RSI. O card **Parâmetros / Indicador N** mostra o nome e os quatro campos do indicador ativo. Os quatro indicadores iniciam em Não usar. Nessa opção, o painel de parâmetros e a coluna correspondente do resumo ficam vazios. Os parâmetros anteriores são preservados em memória ao desabilitar e reativar um indicador. **Continuar →** abre Regras.
-4. Configure períodos diferentes nos quatro indicadores e alterne entre eles. Troque MA ↔ RSI: os valores de cada tipo permanecem independentes por indicador. Uma edição inválida bloqueia a troca até ser corrigida ou cancelada com Escape. As etapas 4–7 continuam apenas visuais.
+4. Configure períodos diferentes nos quatro indicadores e alterne entre eles. Troque MA ↔ RSI: os valores de cada tipo permanecem independentes por indicador. Uma edição inválida bloqueia a troca até ser corrigida ou cancelada com Escape. As etapas 5–7 continuam apenas visuais.
 5. Clique num campo e digite: o primeiro dígito substitui o valor anterior. Enter, Tab ou clique fora confirmam; Escape cancela. Setas, Home, End, Backspace e Delete permitem edição por posição. Ponto, vírgula e decimal do teclado numérico são aceitos.
 6. Teste período zero, texto vazio, níveis fora de 0–100 e inferior ≥ superior: o campo deve ficar vermelho, sem alterar o estado. Corrija ou use Escape para continuar.
 7. Selecione cada indicador e abra sua lista de preço no card de parâmetros. Verifique sobreposição, abertura para cima perto da borda, fechamento por clique externo e navegação por setas/Enter/Escape.
